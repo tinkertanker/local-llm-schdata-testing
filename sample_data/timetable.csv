@@ -1,0 +1,193 @@
+DAY,PERIOD,CLASS,SUBJECT,ROOM
+Monday,1,S1 HONOUR 1,English Language,Room 201
+Monday,2,S1 HONOUR 1,Mathematics,Room 201
+Monday,3,S1 HONOUR 1,Science,Lab 1
+Monday,4,S1 HONOUR 1,Mother Tongue,Room 305
+Monday,5,S1 HONOUR 1,Humanities,Room 201
+Monday,1,S1 HONOUR 2,Mathematics,Room 202
+Monday,2,S1 HONOUR 2,English Language,Room 202
+Monday,3,S1 HONOUR 2,Humanities,Room 202
+Monday,4,S1 HONOUR 2,Science,Lab 2
+Monday,5,S1 HONOUR 2,Art,Art Room
+Monday,1,S1 RESPECT 1,Science,Lab 1
+Monday,2,S1 RESPECT 1,Science,Lab 1
+Monday,3,S1 RESPECT 1,English Language,Room 203
+Monday,4,S1 RESPECT 1,Mathematics,Room 203
+Monday,5,S1 RESPECT 1,Mother Tongue,Room 306
+Monday,1,S1 RESPECT 2,Humanities,Room 204
+Monday,2,S1 RESPECT 2,Mathematics,Room 204
+Monday,3,S1 RESPECT 2,Mathematics,Room 204
+Monday,4,S1 RESPECT 2,English Language,Room 204
+Monday,5,S1 RESPECT 2,Science,Lab 2
+Monday,1,S1 EXCELLENCE 1,English Language,Room 301
+Monday,2,S1 EXCELLENCE 1,Humanities,Room 301
+Monday,3,S1 EXCELLENCE 1,Mathematics,Room 301
+Monday,4,S1 EXCELLENCE 1,Art,Art Room
+Monday,5,S1 EXCELLENCE 1,Science,Lab 3
+Monday,1,S1 EXCELLENCE 2,Mother Tongue,Room 307
+Monday,2,S1 EXCELLENCE 2,Science,Lab 3
+Monday,3,S1 EXCELLENCE 2,English Language,Room 302
+Monday,4,S1 EXCELLENCE 2,Mathematics,Room 302
+Monday,5,S1 EXCELLENCE 2,Humanities,Room 302
+Monday,1,S1 WISDOM 1,Mathematics,Room 303
+Monday,2,S1 WISDOM 1,Mother Tongue,Room 308
+Monday,3,S1 WISDOM 1,Science,Lab 4
+Monday,4,S1 WISDOM 1,English Language,Room 303
+Monday,5,S1 WISDOM 1,Music,Music Room
+Monday,1,S1 WISDOM 2,Art,Art Room
+Monday,2,S1 WISDOM 2,English Language,Room 304
+Monday,3,S1 WISDOM 2,Mother Tongue,Room 309
+Monday,4,S1 WISDOM 2,Humanities,Room 304
+Monday,5,S1 WISDOM 2,Mathematics,Room 304
+Tuesday,1,S1 HONOUR 1,Mathematics,Room 201
+Tuesday,2,S1 HONOUR 1,Science,Lab 1
+Tuesday,3,S1 HONOUR 1,Art,Art Room
+Tuesday,4,S1 HONOUR 1,English Language,Room 201
+Tuesday,5,S1 HONOUR 1,Humanities,Room 201
+Tuesday,1,S1 HONOUR 2,English Language,Room 202
+Tuesday,2,S1 HONOUR 2,Mathematics,Room 202
+Tuesday,3,S1 HONOUR 2,Science,Lab 2
+Tuesday,4,S1 HONOUR 2,Music,Music Room
+Tuesday,5,S1 HONOUR 2,Mother Tongue,Room 305
+Tuesday,1,S1 RESPECT 1,Mother Tongue,Room 306
+Tuesday,2,S1 RESPECT 1,English Language,Room 203
+Tuesday,3,S1 RESPECT 1,Mathematics,Room 203
+Tuesday,4,S1 RESPECT 1,Humanities,Room 203
+Tuesday,5,S1 RESPECT 1,Art,Art Room
+Tuesday,1,S1 RESPECT 2,Science,Lab 2
+Tuesday,2,S1 RESPECT 2,Humanities,Room 204
+Tuesday,3,S1 RESPECT 2,English Language,Room 204
+Tuesday,4,S1 RESPECT 2,Music,Music Room
+Tuesday,5,S1 RESPECT 2,Mathematics,Room 204
+Tuesday,1,S1 EXCELLENCE 1,Science,Lab 3
+Tuesday,2,S1 EXCELLENCE 1,English Language,Room 301
+Tuesday,3,S1 EXCELLENCE 1,Music,Music Room
+Tuesday,4,S1 EXCELLENCE 1,Mathematics,Room 301
+Tuesday,5,S1 EXCELLENCE 1,Mother Tongue,Room 307
+Tuesday,1,S1 EXCELLENCE 2,Mathematics,Room 302
+Tuesday,2,S1 EXCELLENCE 2,Art,Art Room
+Tuesday,3,S1 EXCELLENCE 2,Humanities,Room 302
+Tuesday,4,S1 EXCELLENCE 2,English Language,Room 302
+Tuesday,5,S1 EXCELLENCE 2,Science,Lab 3
+Tuesday,1,S1 WISDOM 1,English Language,Room 303
+Tuesday,2,S1 WISDOM 1,Mathematics,Room 303
+Tuesday,3,S1 WISDOM 1,Humanities,Room 303
+Tuesday,4,S1 WISDOM 1,Science,Lab 4
+Tuesday,5,S1 WISDOM 1,Art,Art Room
+Tuesday,1,S1 WISDOM 2,Science,Lab 4
+Tuesday,2,S1 WISDOM 2,Mathematics,Room 304
+Tuesday,3,S1 WISDOM 2,English Language,Room 304
+Tuesday,4,S1 WISDOM 2,Mother Tongue,Room 309
+Tuesday,5,S1 WISDOM 2,Music,Music Room
+Wednesday,1,S1 HONOUR 1,Science,Lab 1
+Wednesday,2,S1 HONOUR 1,English Language,Room 201
+Wednesday,3,S1 HONOUR 1,Music,Music Room
+Wednesday,4,S1 HONOUR 1,Mathematics,Room 201
+Wednesday,5,S1 HONOUR 1,Mother Tongue,Room 305
+Wednesday,1,S1 HONOUR 2,Humanities,Room 202
+Wednesday,2,S1 HONOUR 2,Science,Lab 2
+Wednesday,3,S1 HONOUR 2,Mathematics,Room 202
+Wednesday,4,S1 HONOUR 2,English Language,Room 202
+Wednesday,5,S1 HONOUR 2,Music,Music Room
+Wednesday,1,S1 RESPECT 1,English Language,Room 203
+Wednesday,2,S1 RESPECT 1,Humanities,Room 203
+Wednesday,3,S1 RESPECT 1,Music,Music Room
+Wednesday,4,S1 RESPECT 1,Science,Lab 1
+Wednesday,5,S1 RESPECT 1,Mathematics,Room 203
+Wednesday,1,S1 RESPECT 2,Mathematics,Room 204
+Wednesday,2,S1 RESPECT 2,English Language,Room 204
+Wednesday,3,S1 RESPECT 2,Science,Lab 2
+Wednesday,4,S1 RESPECT 2,Art,Art Room
+Wednesday,5,S1 RESPECT 2,Humanities,Room 204
+Wednesday,1,S1 EXCELLENCE 1,Humanities,Room 301
+Wednesday,2,S1 EXCELLENCE 1,Mathematics,Room 301
+Wednesday,3,S1 EXCELLENCE 1,English Language,Room 301
+Wednesday,4,S1 EXCELLENCE 1,Science,Lab 3
+Wednesday,5,S1 EXCELLENCE 1,Art,Art Room
+Wednesday,1,S1 EXCELLENCE 2,English Language,Room 302
+Wednesday,2,S1 EXCELLENCE 2,Mother Tongue,Room 307
+Wednesday,3,S1 EXCELLENCE 2,Science,Lab 3
+Wednesday,4,S1 EXCELLENCE 2,Humanities,Room 302
+Wednesday,5,S1 EXCELLENCE 2,Mathematics,Room 302
+Wednesday,1,S1 WISDOM 1,Mother Tongue,Room 308
+Wednesday,2,S1 WISDOM 1,Science,Lab 4
+Wednesday,3,S1 WISDOM 1,English Language,Room 303
+Wednesday,4,S1 WISDOM 1,Art,Art Room
+Wednesday,5,S1 WISDOM 1,Mathematics,Room 303
+Wednesday,1,S1 WISDOM 2,Mathematics,Room 304
+Wednesday,2,S1 WISDOM 2,Humanities,Room 304
+Wednesday,3,S1 WISDOM 2,Art,Art Room
+Wednesday,4,S1 WISDOM 2,Science,Lab 4
+Wednesday,5,S1 WISDOM 2,English Language,Room 304
+Thursday,1,S1 HONOUR 1,Mother Tongue,Room 305
+Thursday,2,S1 HONOUR 1,Mathematics,Room 201
+Thursday,3,S1 HONOUR 1,English Language,Room 201
+Thursday,4,S1 HONOUR 1,Humanities,Room 201
+Thursday,5,S1 HONOUR 1,Science,Lab 1
+Thursday,1,S1 HONOUR 2,Science,Lab 2
+Thursday,2,S1 HONOUR 2,Mother Tongue,Room 305
+Thursday,3,S1 HONOUR 2,English Language,Room 202
+Thursday,4,S1 HONOUR 2,Mathematics,Room 202
+Thursday,5,S1 HONOUR 2,Humanities,Room 202
+Thursday,1,S1 RESPECT 1,Mathematics,Room 203
+Thursday,2,S1 RESPECT 1,Mother Tongue,Room 306
+Thursday,3,S1 RESPECT 1,Humanities,Room 203
+Thursday,4,S1 RESPECT 1,English Language,Room 203
+Thursday,5,S1 RESPECT 1,Science,Lab 1
+Thursday,1,S1 RESPECT 2,English Language,Room 204
+Thursday,2,S1 RESPECT 2,Science,Lab 2
+Thursday,3,S1 RESPECT 2,Mother Tongue,Room 306
+Thursday,4,S1 RESPECT 2,Humanities,Room 204
+Thursday,5,S1 RESPECT 2,Art,Art Room
+Thursday,1,S1 EXCELLENCE 1,Art,Art Room
+Thursday,2,S1 EXCELLENCE 1,Science,Lab 3
+Thursday,3,S1 EXCELLENCE 1,Mathematics,Room 301
+Thursday,4,S1 EXCELLENCE 1,Mother Tongue,Room 307
+Thursday,5,S1 EXCELLENCE 1,English Language,Room 301
+Thursday,1,S1 EXCELLENCE 2,Humanities,Room 302
+Thursday,2,S1 EXCELLENCE 2,English Language,Room 302
+Thursday,3,S1 EXCELLENCE 2,Art,Art Room
+Thursday,4,S1 EXCELLENCE 2,Science,Lab 3
+Thursday,5,S1 EXCELLENCE 2,Mathematics,Room 302
+Thursday,1,S1 WISDOM 1,Science,Lab 4
+Thursday,2,S1 WISDOM 1,English Language,Room 303
+Thursday,3,S1 WISDOM 1,Music,Music Room
+Thursday,4,S1 WISDOM 1,Mathematics,Room 303
+Thursday,5,S1 WISDOM 1,Mother Tongue,Room 308
+Thursday,1,S1 WISDOM 2,English Language,Room 304
+Thursday,2,S1 WISDOM 2,Art,Art Room
+Thursday,3,S1 WISDOM 2,Science,Lab 4
+Thursday,4,S1 WISDOM 2,Mathematics,Room 304
+Thursday,5,S1 WISDOM 2,Humanities,Room 304
+Friday,1,S1 HONOUR 1,Humanities,Room 201
+Friday,2,S1 HONOUR 1,Art,Art Room
+Friday,3,S1 HONOUR 1,Mathematics,Room 201
+Friday,4,S1 HONOUR 1,Science,Lab 1
+Friday,1,S1 HONOUR 2,English Language,Room 202
+Friday,2,S1 HONOUR 2,Humanities,Room 202
+Friday,3,S1 HONOUR 2,Science,Lab 2
+Friday,4,S1 HONOUR 2,Mathematics,Room 202
+Friday,1,S1 RESPECT 1,Science,Lab 1
+Friday,2,S1 RESPECT 1,English Language,Room 203
+Friday,3,S1 RESPECT 1,Mother Tongue,Room 306
+Friday,4,S1 RESPECT 1,Humanities,Room 203
+Friday,1,S1 RESPECT 2,Mathematics,Room 204
+Friday,2,S1 RESPECT 2,Music,Music Room
+Friday,3,S1 RESPECT 2,English Language,Room 204
+Friday,4,S1 RESPECT 2,Science,Lab 2
+Friday,1,S1 EXCELLENCE 1,Mother Tongue,Room 307
+Friday,2,S1 EXCELLENCE 1,English Language,Room 301
+Friday,3,S1 EXCELLENCE 1,Science,Lab 3
+Friday,4,S1 EXCELLENCE 1,Humanities,Room 301
+Friday,1,S1 EXCELLENCE 2,Science,Lab 3
+Friday,2,S1 EXCELLENCE 2,Mathematics,Room 302
+Friday,3,S1 EXCELLENCE 2,Music,Music Room
+Friday,4,S1 EXCELLENCE 2,English Language,Room 302
+Friday,1,S1 WISDOM 1,English Language,Room 303
+Friday,2,S1 WISDOM 1,Humanities,Room 303
+Friday,3,S1 WISDOM 1,Mathematics,Room 303
+Friday,4,S1 WISDOM 1,Music,Music Room
+Friday,1,S1 WISDOM 2,Mother Tongue,Room 309
+Friday,2,S1 WISDOM 2,Science,Lab 4
+Friday,3,S1 WISDOM 2,English Language,Room 304
+Friday,4,S1 WISDOM 2,Mathematics,Room 304
