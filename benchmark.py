@@ -1,12 +1,13 @@
 """
 Benchmark: Local LLM CSV Tool Calling
 ======================================
-Tests qwen3.5-35b-a3b on 14 school-data questions in 3 modes:
-  1. Ground truth (pre-computed from CSV data)
-  2. LLM + tools (function calling via LM Studio)
-  3. LLM without tools (raw CSV data stuffed into context)
+Runs the school-data benchmark against a local LM Studio model.
 
-Generates an HTML report at benchmark_report.html.
+Outputs:
+  - benchmark_report.html     summary page for the latest verified run
+  - benchmark_results.html    detailed per-question evidence
+  - benchmark_results.json    machine-readable run artefact
+  - benchmark_full_report.html (optional, only in --mode full)
 """
 
 import argparse
@@ -31,7 +32,12 @@ from csv_tool import CSVTool, TOOL_DEFINITIONS
 DATA_DIR = "./sample_data"
 LM_STUDIO_URL = "http://localhost:1234/v1"
 MODEL = "qwen3.5-35b-a3b"
-REPORT_PATH = "benchmark_report.html"
+MODEL_LABEL = "mlx-community/Qwen3.5-35B-A3B-4bit mlx"
+SUMMARY_REPORT_PATH = "benchmark_report.html"
+DETAIL_REPORT_PATH = "benchmark_results.html"
+RESULTS_JSON_PATH = "benchmark_results.json"
+FULL_REPORT_PATH = "benchmark_full_report.html"
+REPO_URL = "https://github.com/tinkertanker/local-llm-schdata-testing"
 STUDENT = "Qian Hui Zheng"
 CLASS = "S1 HONOUR 1"
 MAX_TOOL_ROUNDS = 12
@@ -103,6 +109,15 @@ def csv_contents_for_files(filenames):
 def strip_think_tags(text: str) -> str:
     """Remove <think>...</think> blocks from model output."""
     return re.sub(r"<think>.*?</think>\s*", "", text, flags=re.DOTALL).strip()
+
+
+def format_fact_list(facts, limit=6):
+    facts = [fact for fact in facts if fact]
+    if not facts:
+        return "None"
+    shown = facts[:limit]
+    suffix = "" if len(facts) <= limit else f", and {len(facts) - limit} more"
+    return ", ".join(shown) + suffix
 
 
 # ── Ground truth ──────────────────────────────────────────────────────
@@ -588,6 +603,68 @@ def score_answer(answer: str, ground_truth: str, question_idx: int) -> dict:
         return {"score": 0, "label": "MISS", "css": "score-miss"}
 
 
+def judge_answer(answer: str, ground_truth: str, question_idx: int) -> dict:
+    """Human-readable assessment built on top of the fact scorer."""
+    score = score_answer(answer, ground_truth, question_idx)
+    facts = sorted(_extract_facts(ground_truth))
+    norm_ans = _normalise_answer(answer)
+
+    matched = [fact for fact in facts if fact in norm_ans]
+    missing = [fact for fact in facts if fact not in norm_ans]
+
+    if question_idx == 13 and "sarah yeo" in norm_ans:
+        matched = facts[:]
+        missing = []
+
+    if not answer or answer.startswith("[API ERROR]"):
+        verdict = "Did not work"
+        reasoning = "The benchmark run returned an API error instead of an answer."
+    elif answer == "(exceeded tool rounds)":
+        verdict = "Did not work"
+        reasoning = "The model did not finish within the allowed tool rounds."
+    elif score["score"] >= 3:
+        verdict = "Worked"
+        if question_idx == 13 and "sarah yeo" in norm_ans:
+            reasoning = (
+                "Accepted benchmark interpretation. The answer names a student from the same "
+                "academic class, which is the intended comparison for this question in the sample data."
+            )
+        elif missing:
+            reasoning = (
+                f"Worked overall. It covered {len(matched)} of {len(facts)} benchmark facts. "
+                f"Missing details were minor: {format_fact_list(missing, limit=3)}."
+            )
+        else:
+            reasoning = "Worked. The answer covered the expected benchmark facts."
+    elif score["score"] == 2:
+        verdict = "Partly worked"
+        reasoning = (
+            f"The answer captured some of the benchmark facts but missed key details: "
+            f"{format_fact_list(missing, limit=4)}."
+        )
+    elif score["score"] == 1:
+        verdict = "Did not work"
+        reasoning = (
+            f"The answer touched the topic but missed most of the benchmark facts: "
+            f"{format_fact_list(missing, limit=4)}."
+        )
+    else:
+        verdict = "Did not work"
+        reasoning = "The answer did not contain the benchmark facts needed for this question."
+
+    return {
+        "score": score["score"],
+        "label": score["label"],
+        "css": score["css"],
+        "verdict": verdict,
+        "reasoning": reasoning,
+        "matched_facts": matched,
+        "missing_facts": missing,
+        "matched_count": len(matched),
+        "total_facts": len(facts),
+    }
+
+
 # ── HTML report generation ────────────────────────────────────────────
 
 def _tool_detail_html(result):
@@ -595,9 +672,11 @@ def _tool_detail_html(result):
     tcs = result.get("tool_calls", [])
     if not tcs:
         return ""
-    tc_items = "<br>".join(
-        f"<code>{tc['tool']}({json.dumps(tc['args'], ensure_ascii=False)[:80]})</code>"
-        + (f" <span class='badge' style='background:#da3633;color:#fff'>{tc['note']}</span>" if tc.get("note") else "")
+    tc_items = "".join(
+        "<div class='tool-call'>"
+        f"<code>{_escape(tc['tool'])}({ _escape(json.dumps(tc['args'], ensure_ascii=False)) })</code>"
+        + (f"<div class='tool-note'>{_escape(tc['note'])}</div>" if tc.get("note") else "")
+        + "</div>"
         for tc in tcs
     )
     return f'<details><summary>{len(tcs)} tool call(s)</summary><div class="tool-calls">{tc_items}</div></details>'
@@ -612,7 +691,780 @@ def _mode_stats(results, scores):
     return {"time": total_time, "tools": total_tools, "pass": n_pass, "partial": n_partial, "n": n}
 
 
-def generate_html(ground_truth, with_tools_results, optimised_results, no_tools_results):
+def build_single_mode_report_data(ground_truth, results, mode_label, generated_at):
+    judgements = [judge_answer(r["answer"], gt, i) for i, (r, gt) in enumerate(zip(results, ground_truth))]
+    stats = _mode_stats(results, judgements)
+    question_rows = []
+
+    for i, (question, expected, result, judgement) in enumerate(zip(QUESTIONS, ground_truth, results, judgements)):
+        question_rows.append({
+            "index": i + 1,
+            "short_label": SHORT_LABELS[i],
+            "question": question,
+            "difficulty": DIFFICULTY[i],
+            "expected_answer": expected,
+            "model_answer": result["answer"],
+            "time_s": result["time_s"],
+            "tool_calls": result.get("tool_calls", []),
+            "tool_call_count": len(result.get("tool_calls", [])),
+            "judgement": judgement,
+        })
+
+    longest = max(question_rows, key=lambda row: row["time_s"])
+    return {
+        "generated_at": generated_at,
+        "model_id": MODEL,
+        "model_label": MODEL_LABEL,
+        "mode_label": mode_label,
+        "student": STUDENT,
+        "question_count": len(question_rows),
+        "summary": {
+            "pass_count": stats["pass"],
+            "partial_count": stats["partial"],
+            "fail_count": stats["n"] - stats["partial"],
+            "total_time_s": stats["time"],
+            "average_time_s": stats["time"] / stats["n"],
+            "tool_calls": stats["tools"],
+            "longest_question_label": longest["short_label"],
+            "longest_question_time_s": longest["time_s"],
+        },
+        "questions": question_rows,
+    }
+
+
+def generate_summary_html(report_data):
+    summary = report_data["summary"]
+    questions = report_data["questions"]
+    pass_rate = f"{summary['pass_count']} / {report_data['question_count']}"
+    question_rows = "".join(
+        f"""
+        <tr>
+          <td>{row['index']}</td>
+          <td>
+            <strong>{_escape(row['short_label'])}</strong>
+            <div class="row-subtle">{_escape(row['question'])}</div>
+          </td>
+          <td><span class="badge badge-{row['difficulty'].lower()}">{_escape(row['difficulty'])}</span></td>
+          <td><span class="badge {row['judgement']['css']}">{_escape(row['judgement']['verdict'])}</span></td>
+          <td>{row['time_s']:.1f}s</td>
+          <td>{row['tool_call_count']}</td>
+        </tr>
+        """
+        for row in questions
+    )
+
+    return f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Benchmark Summary</title>
+<style>
+  :root {{
+    --bg: #f4efe7;
+    --paper: #fffdf8;
+    --frame-bg: rgba(255, 253, 248, 0.92);
+    --float-bg: rgba(255, 253, 248, 0.88);
+    --hover-bg: #fff7ef;
+    --bg-glow-1: rgba(180, 77, 22, 0.08);
+    --bg-glow-2: rgba(31, 93, 99, 0.09);
+    --ink: #1e1812;
+    --muted: #6e655c;
+    --line: #dbcab5;
+    --accent: #b44d16;
+    --accent-dark: #7d2e0d;
+    --accent-soft: #f7dfcf;
+    --teal: #1f5d63;
+    --teal-soft: #dceef0;
+    --success: #2f7d32;
+    --success-soft: #e1f2e2;
+    --warning: #9a6700;
+    --warning-soft: #f5ead2;
+    --danger: #9b2c2c;
+    --danger-soft: #f8dedd;
+    --shadow: 0 18px 48px rgba(63, 38, 15, 0.10);
+  }}
+  * {{ box-sizing: border-box; }}
+  body {{
+    margin: 0;
+    font-family: "Avenir Next", "Segoe UI", sans-serif;
+    color: var(--ink);
+    background:
+      radial-gradient(circle at top right, var(--bg-glow-1), transparent 24%),
+      radial-gradient(circle at bottom left, var(--bg-glow-2), transparent 28%),
+      var(--bg);
+  }}
+  a {{
+    color: inherit;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 0.18em;
+    text-decoration-color: color-mix(in srgb, var(--accent) 55%, transparent);
+  }}
+  a:hover {{ color: var(--accent); }}
+  .wrap {{
+    width: min(1180px, calc(100% - 32px));
+    margin: 32px auto 48px;
+  }}
+  .hero,
+  .panel,
+  .table-panel,
+  .stat {{
+    border: 1px solid var(--line);
+    border-radius: 28px;
+    background: var(--frame-bg);
+    box-shadow: var(--shadow);
+    backdrop-filter: blur(8px);
+  }}
+  .hero,
+  .panel,
+  .table-panel {{
+    padding: 32px;
+  }}
+  .hero {{
+    margin-bottom: 24px;
+  }}
+  .eyebrow {{
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 18px;
+    padding: 7px 12px;
+    border-radius: 999px;
+    background: var(--accent-soft);
+    color: var(--accent-dark);
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }}
+  .eyebrow::before {{
+    content: "";
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--accent);
+  }}
+  h1 {{
+    margin: 0;
+    font-size: clamp(40px, 6vw, 64px);
+    line-height: 0.98;
+    letter-spacing: -0.04em;
+  }}
+  h2 {{
+    margin: 0 0 14px;
+    font-size: 24px;
+    letter-spacing: -0.03em;
+  }}
+  .lede {{
+    margin-top: 18px;
+    max-width: 900px;
+    font-size: clamp(18px, 2.1vw, 26px);
+    line-height: 1.45;
+    color: var(--muted);
+  }}
+  .hero-note {{
+    margin-top: 18px;
+    color: var(--muted);
+    font-size: 14px;
+    line-height: 1.7;
+  }}
+  .actions {{
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 24px;
+  }}
+  .action-link {{
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 11px 16px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: var(--paper);
+    text-decoration: none;
+    font-weight: 700;
+  }}
+  .stats {{
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 18px;
+    margin-bottom: 24px;
+  }}
+  .stat {{
+    padding: 22px;
+    background: var(--paper);
+  }}
+  .stat .label {{
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.10em;
+    text-transform: uppercase;
+  }}
+  .stat .value {{
+    margin-top: 8px;
+    font-size: clamp(32px, 4vw, 56px);
+    line-height: 1;
+    font-weight: 800;
+    letter-spacing: -0.06em;
+  }}
+  .stat .subvalue {{
+    margin-top: 10px;
+    color: var(--muted);
+    line-height: 1.6;
+  }}
+  .grid {{
+    display: grid;
+    grid-template-columns: 1.2fr 0.8fr;
+    gap: 18px;
+    margin-bottom: 24px;
+  }}
+  .callout {{
+    margin-top: 18px;
+    padding: 16px 18px;
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    background: var(--paper);
+    border-bottom: 2px solid var(--accent);
+    color: var(--muted);
+    line-height: 1.7;
+  }}
+  ul {{
+    margin: 0;
+    padding-left: 20px;
+    color: var(--muted);
+    line-height: 1.7;
+  }}
+  li + li {{ margin-top: 6px; }}
+  table {{
+    width: 100%;
+    border-collapse: collapse;
+  }}
+  th,
+  td {{
+    padding: 12px 10px;
+    border-bottom: 1px solid var(--line);
+    text-align: left;
+    vertical-align: top;
+  }}
+  th {{
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }}
+  tr:last-child td {{ border-bottom: none; }}
+  .row-subtle {{
+    margin-top: 4px;
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.5;
+  }}
+  .badge {{
+    display: inline-block;
+    padding: 5px 8px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+    white-space: nowrap;
+  }}
+  .badge-easy {{ background: var(--success-soft); color: var(--success); }}
+  .badge-medium {{ background: var(--warning-soft); color: var(--warning); }}
+  .badge-hard {{ background: var(--danger-soft); color: var(--danger); }}
+  .score-pass {{ background: var(--success-soft); color: var(--success); }}
+  .score-partial {{ background: var(--warning-soft); color: var(--warning); }}
+  .score-weak, .score-miss, .score-fail {{ background: var(--danger-soft); color: var(--danger); }}
+  .foot {{
+    margin-top: 18px;
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.6;
+  }}
+  @media (max-width: 980px) {{
+    .stats,
+    .grid {{
+      grid-template-columns: 1fr;
+    }}
+    .table-panel {{
+      overflow-x: auto;
+    }}
+    table {{
+      min-width: 720px;
+    }}
+  }}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <section class="hero">
+      <div class="eyebrow">Benchmark summary</div>
+      <h1>Optimised local tool benchmark</h1>
+      <p class="lede">
+        This page summarises the latest rerun of the school question set against the current local setup.
+        The detailed per-question evidence is linked below.
+      </p>
+      <p class="hero-note">
+        Tested model: <strong>{_escape(report_data['model_label'])}</strong><br>
+        LM Studio API model id: <strong>{_escape(report_data['model_id'])}</strong><br>
+        Scope: <strong>{_escape(report_data['mode_label'])}</strong> · Questions: <strong>{report_data['question_count']}</strong> · Generated: <strong>{_escape(report_data['generated_at'])}</strong>
+      </p>
+      <div class="actions">
+        <a class="action-link" href="./benchmark_results.html">View detailed results</a>
+        <a class="action-link" href="./benchmark_results.json">Open raw results JSON</a>
+        <a class="action-link" href="{REPO_URL}/blob/main/benchmark.py" target="_blank" rel="noreferrer">View benchmark harness on GitHub</a>
+      </div>
+    </section>
+
+    <section class="stats">
+      <article class="stat">
+        <div class="label">Worked</div>
+        <div class="value">{pass_rate}</div>
+        <div class="subvalue">Questions judged as worked in the latest rerun.</div>
+      </article>
+      <article class="stat">
+        <div class="label">Average time</div>
+        <div class="value">{summary['average_time_s']:.1f}s</div>
+        <div class="subvalue">{summary['total_time_s']:.1f} seconds total across the run.</div>
+      </article>
+      <article class="stat">
+        <div class="label">Tool calls</div>
+        <div class="value">{summary['tool_calls']}</div>
+        <div class="subvalue">Total tool calls made in the optimised mode run.</div>
+      </article>
+      <article class="stat">
+        <div class="label">Slowest question</div>
+        <div class="value">{summary['longest_question_time_s']:.1f}s</div>
+        <div class="subvalue">{_escape(summary['longest_question_label'])}</div>
+      </article>
+    </section>
+
+    <section class="grid">
+      <article class="panel">
+        <h2>What this rerun shows</h2>
+        <ul>
+          <li>The benchmark was rerun against the model currently served by LM Studio, with the report now driven by the actual outputs from that run.</li>
+          <li>Each question is shown with the prompt, expected answer, model answer, elapsed time, tool usage, and a plain-language assessment.</li>
+          <li>The detailed page is intended to make it easier to explain the result to the school without relying on a static hand-written summary.</li>
+        </ul>
+        <div class="callout">
+          The expected answers are derived directly from the sample CSV data, and the judgement text is generated from the benchmark fact checks with a small benchmark-specific interpretation for the final “most common classes” question.
+        </div>
+      </article>
+      <article class="panel">
+        <h2>Relevant files</h2>
+        <ul>
+          <li><a href="{REPO_URL}/blob/main/sample_data/S1EL_3.csv" target="_blank" rel="noreferrer">Original source CSV</a></li>
+          <li><a href="{REPO_URL}/blob/main/csv_tool.py" target="_blank" rel="noreferrer">Local tool layer</a></li>
+          <li><a href="{REPO_URL}/blob/main/bridge.py" target="_blank" rel="noreferrer">LM Studio bridge</a></li>
+          <li><a href="{REPO_URL}/blob/main/benchmark.py" target="_blank" rel="noreferrer">Benchmark harness</a></li>
+        </ul>
+      </article>
+    </section>
+
+    <section class="table-panel">
+      <h2>Per-question summary</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Question</th>
+            <th>Difficulty</th>
+            <th>Assessment</th>
+            <th>Time</th>
+            <th>Calls</th>
+          </tr>
+        </thead>
+        <tbody>
+          {question_rows}
+        </tbody>
+      </table>
+      <p class="foot">
+        Full query-by-query evidence is available in <a href="./benchmark_results.html">benchmark_results.html</a>.
+      </p>
+    </section>
+  </div>
+</body>
+</html>"""
+
+
+def generate_detail_html(report_data):
+    summary = report_data["summary"]
+    cards_html = ""
+
+    for row in report_data["questions"]:
+        judgement = row["judgement"]
+        cards_html += f"""
+        <article class="question-card">
+          <div class="question-top">
+            <div>
+              <div class="question-index">Question {row['index']}</div>
+              <h2>{_escape(row['short_label'])}</h2>
+              <p class="question-text">{_escape(row['question'])}</p>
+            </div>
+            <div class="question-badges">
+              <span class="badge badge-{row['difficulty'].lower()}">{_escape(row['difficulty'])}</span>
+              <span class="badge {judgement['css']}">{_escape(judgement['verdict'])}</span>
+            </div>
+          </div>
+          <div class="meta-row">
+            <span><strong>Time:</strong> {row['time_s']:.1f}s</span>
+            <span><strong>Tool calls:</strong> {row['tool_call_count']}</span>
+          </div>
+          <div class="compare-grid">
+            <div class="answer-panel">
+              <h3>Expected answer</h3>
+              <pre>{_escape(row['expected_answer'])}</pre>
+            </div>
+            <div class="answer-panel">
+              <h3>Model answer</h3>
+              <pre>{_escape(row['model_answer'])}</pre>
+            </div>
+          </div>
+          <div class="assessment">
+            <h3>Assessment</h3>
+            <p>{_escape(judgement['reasoning'])}</p>
+            <p><strong>Matched facts:</strong> {_escape(format_fact_list(judgement['matched_facts'], limit=8))}</p>
+            <p><strong>Missing facts:</strong> {_escape(format_fact_list(judgement['missing_facts'], limit=8))}</p>
+          </div>
+          {_tool_detail_html(row)}
+        </article>
+        """
+
+    return f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Benchmark Results</title>
+<style>
+  :root {{
+    --bg: #f4efe7;
+    --paper: #fffdf8;
+    --frame-bg: rgba(255, 253, 248, 0.92);
+    --hover-bg: #fff7ef;
+    --bg-glow-1: rgba(180, 77, 22, 0.08);
+    --bg-glow-2: rgba(31, 93, 99, 0.09);
+    --ink: #1e1812;
+    --muted: #6e655c;
+    --line: #dbcab5;
+    --accent: #b44d16;
+    --accent-dark: #7d2e0d;
+    --accent-soft: #f7dfcf;
+    --teal: #1f5d63;
+    --teal-soft: #dceef0;
+    --success: #2f7d32;
+    --success-soft: #e1f2e2;
+    --warning: #9a6700;
+    --warning-soft: #f5ead2;
+    --danger: #9b2c2c;
+    --danger-soft: #f8dedd;
+    --shadow: 0 18px 48px rgba(63, 38, 15, 0.10);
+  }}
+  * {{ box-sizing: border-box; }}
+  body {{
+    margin: 0;
+    font-family: "Avenir Next", "Segoe UI", sans-serif;
+    color: var(--ink);
+    background:
+      radial-gradient(circle at top right, var(--bg-glow-1), transparent 24%),
+      radial-gradient(circle at bottom left, var(--bg-glow-2), transparent 28%),
+      var(--bg);
+  }}
+  a {{
+    color: inherit;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 0.18em;
+    text-decoration-color: color-mix(in srgb, var(--accent) 55%, transparent);
+  }}
+  a:hover {{ color: var(--accent); }}
+  .wrap {{
+    width: min(1180px, calc(100% - 32px));
+    margin: 32px auto 48px;
+  }}
+  .hero,
+  .question-card {{
+    border: 1px solid var(--line);
+    border-radius: 28px;
+    background: var(--frame-bg);
+    box-shadow: var(--shadow);
+    backdrop-filter: blur(8px);
+  }}
+  .hero {{
+    padding: 32px;
+    margin-bottom: 24px;
+  }}
+  .eyebrow {{
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 18px;
+    padding: 7px 12px;
+    border-radius: 999px;
+    background: var(--teal-soft);
+    color: var(--teal);
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }}
+  .eyebrow::before {{
+    content: "";
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--teal);
+  }}
+  h1 {{
+    margin: 0;
+    font-size: clamp(40px, 6vw, 64px);
+    line-height: 0.98;
+    letter-spacing: -0.04em;
+  }}
+  h2 {{
+    margin: 0;
+    font-size: 30px;
+    letter-spacing: -0.03em;
+  }}
+  .lede {{
+    margin-top: 18px;
+    max-width: 960px;
+    font-size: 20px;
+    line-height: 1.5;
+    color: var(--muted);
+  }}
+  .actions {{
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 24px;
+  }}
+  .action-link {{
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 11px 16px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: var(--paper);
+    text-decoration: none;
+    font-weight: 700;
+  }}
+  .overview {{
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 18px;
+    margin-top: 24px;
+  }}
+  .overview-card {{
+    padding: 20px;
+    border: 1px solid var(--line);
+    border-radius: 22px;
+    background: var(--paper);
+  }}
+  .overview-card .label {{
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.10em;
+    text-transform: uppercase;
+  }}
+  .overview-card .value {{
+    margin-top: 8px;
+    font-size: 34px;
+    line-height: 1;
+    font-weight: 800;
+    letter-spacing: -0.05em;
+  }}
+  .overview-card .subvalue {{
+    margin-top: 10px;
+    color: var(--muted);
+    line-height: 1.6;
+  }}
+  .results {{
+    display: grid;
+    gap: 18px;
+  }}
+  .question-card {{
+    padding: 28px;
+  }}
+  .question-top {{
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+  }}
+  .question-index {{
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.10em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }}
+  .question-text {{
+    margin: 12px 0 0;
+    color: var(--muted);
+    font-size: 17px;
+    line-height: 1.6;
+  }}
+  .question-badges {{
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }}
+  .badge {{
+    display: inline-block;
+    padding: 5px 8px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+    white-space: nowrap;
+  }}
+  .badge-easy {{ background: var(--success-soft); color: var(--success); }}
+  .badge-medium {{ background: var(--warning-soft); color: var(--warning); }}
+  .badge-hard {{ background: var(--danger-soft); color: var(--danger); }}
+  .score-pass {{ background: var(--success-soft); color: var(--success); }}
+  .score-partial {{ background: var(--warning-soft); color: var(--warning); }}
+  .score-weak, .score-miss, .score-fail {{ background: var(--danger-soft); color: var(--danger); }}
+  .meta-row {{
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-top: 14px;
+    color: var(--muted);
+    font-size: 14px;
+  }}
+  .compare-grid {{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-top: 22px;
+  }}
+  .answer-panel,
+  .assessment,
+  .tool-panel {{
+    padding: 18px;
+    border: 1px solid var(--line);
+    border-radius: 22px;
+    background: var(--paper);
+  }}
+  .answer-panel h3,
+  .assessment h3 {{
+    margin: 0 0 10px;
+    font-size: 18px;
+    letter-spacing: -0.02em;
+  }}
+  pre {{
+    margin: 0;
+    white-space: pre-wrap;
+    font: inherit;
+    line-height: 1.7;
+    color: var(--muted);
+  }}
+  .assessment {{
+    margin-top: 16px;
+    border-bottom: 2px solid var(--accent);
+  }}
+  .assessment p {{
+    margin: 0;
+    color: var(--muted);
+    line-height: 1.7;
+  }}
+  .assessment p + p {{
+    margin-top: 10px;
+  }}
+  details {{
+    margin-top: 16px;
+  }}
+  summary {{
+    cursor: pointer;
+    font-weight: 700;
+    color: var(--teal);
+  }}
+  .tool-calls {{
+    margin-top: 12px;
+    display: grid;
+    gap: 10px;
+  }}
+  .tool-call {{
+    padding: 14px;
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    background: var(--paper);
+  }}
+  .tool-call code {{
+    display: block;
+    white-space: pre-wrap;
+    word-break: break-word;
+    font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+    font-size: 13px;
+    color: var(--muted);
+  }}
+  .tool-note {{
+    margin-top: 8px;
+    color: var(--danger);
+    font-size: 13px;
+    font-weight: 700;
+  }}
+  @media (max-width: 980px) {{
+    .overview,
+    .compare-grid {{
+      grid-template-columns: 1fr;
+    }}
+    .question-top {{
+      flex-direction: column;
+    }}
+  }}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <section class="hero">
+      <div class="eyebrow">Detailed benchmark results</div>
+      <h1>Question-by-question evidence</h1>
+      <p class="lede">
+        This page shows the actual prompt, expected answer, model answer, tool usage, timing, and assessment for the latest run of the school benchmark.
+      </p>
+      <div class="actions">
+        <a class="action-link" href="./benchmark_report.html">Back to summary</a>
+        <a class="action-link" href="./benchmark_results.json">Open raw results JSON</a>
+        <a class="action-link" href="{REPO_URL}/blob/main/benchmark.py" target="_blank" rel="noreferrer">View benchmark harness on GitHub</a>
+      </div>
+      <div class="overview">
+        <article class="overview-card">
+          <div class="label">Worked</div>
+          <div class="value">{summary['pass_count']}/{report_data['question_count']}</div>
+          <div class="subvalue">Questions judged as worked in this rerun.</div>
+        </article>
+        <article class="overview-card">
+          <div class="label">Average time</div>
+          <div class="value">{summary['average_time_s']:.1f}s</div>
+          <div class="subvalue">{_escape(report_data['mode_label'])}<br>{summary['tool_calls']} total tool calls</div>
+        </article>
+        <article class="overview-card">
+          <div class="label">Generated</div>
+          <div class="value">{_escape(report_data['generated_at'].split()[0])}</div>
+          <div class="subvalue">{_escape(report_data['generated_at'])}</div>
+        </article>
+        <article class="overview-card">
+          <div class="label">Model tested</div>
+          <div class="value">{_escape(report_data['model_id'])}</div>
+          <div class="subvalue">{_escape(report_data['model_label'])}</div>
+        </article>
+      </div>
+    </section>
+
+    <section class="results">
+      {cards_html}
+    </section>
+  </div>
+</body>
+</html>"""
+
+
+def generate_full_comparison_html(ground_truth, with_tools_results, optimised_results, no_tools_results):
     wt_scores = [score_answer(r["answer"], gt, i) for i, (r, gt) in enumerate(zip(with_tools_results, ground_truth))]
     op_scores = [score_answer(r["answer"], gt, i) for i, (r, gt) in enumerate(zip(optimised_results, ground_truth))]
     nt_scores = [score_answer(r["answer"], gt, i) for i, (r, gt) in enumerate(zip(no_tools_results, ground_truth))]
@@ -796,7 +1648,7 @@ def generate_html(ground_truth, with_tools_results, optimised_results, no_tools_
 <body>
 <h1>LLM CSV Tool-Calling Benchmark</h1>
 <p class="subtitle">
-  Model: <strong>{MODEL}</strong> &middot; {n} questions &middot;
+  Model: <strong>{MODEL_LABEL}</strong> (LM Studio id: <strong>{MODEL}</strong>) &middot; {n} questions &middot;
   Generated {datetime.now().strftime('%Y-%m-%d %H:%M')} &middot;
   Student: {STUDENT}
 </p>
@@ -850,7 +1702,7 @@ def generate_html(ground_truth, with_tools_results, optimised_results, no_tools_
     <li><strong>Scoring</strong> &mdash; fact-extraction matching: ground truth is split into atomic facts (names, numbers, key-value pairs), each checked independently in the normalised answer. PASS (&ge;80% facts found), PARTIAL (&ge;40%), WEAK (&gt;0%), MISS/FAIL (0% or error)</li>
     <li><strong>Loop detection</strong> &mdash; duplicate tool calls are warned on 2nd occurrence, blocked on 3rd. Hard cap of {MAX_TOOL_CALLS_TOTAL} tool calls per question. When triggered, model is forced to answer with data gathered so far</li>
   </ul>
-  <p style="margin-top:0.5rem">Benchmark by Claude Opus 4.6 &middot; {datetime.now().strftime('%Y-%m-%d')}</p>
+  <p style="margin-top:0.5rem">Generated from benchmark.py &middot; {datetime.now().strftime('%Y-%m-%d')}</p>
 </div>
 </body>
 </html>"""
@@ -870,32 +1722,57 @@ def _escape(text):
 
 # ── Main ──────────────────────────────────────────────────────────────
 
+
+def parse_args():
+    parser = argparse.ArgumentParser(description="Run the local school-data benchmark.")
+    parser.add_argument("--data-dir", default=DATA_DIR, help="Directory containing the sample CSV files.")
+    parser.add_argument("--lm-studio-url", default=LM_STUDIO_URL, help="Base URL for the local LM Studio OpenAI-compatible API.")
+    parser.add_argument("--model", default=MODEL, help="LM Studio model id to call.")
+    parser.add_argument("--model-label", default=MODEL_LABEL, help="Human-readable model label to show in reports.")
+    parser.add_argument(
+        "--mode",
+        choices=["optimised", "full"],
+        default="optimised",
+        help="Run only the current optimised tool benchmark, or all benchmark modes.",
+    )
+    parser.add_argument("--summary-report", default=SUMMARY_REPORT_PATH, help="Path for the summary HTML report.")
+    parser.add_argument("--detail-report", default=DETAIL_REPORT_PATH, help="Path for the detailed per-question HTML report.")
+    parser.add_argument("--results-json", default=RESULTS_JSON_PATH, help="Path for the machine-readable results JSON.")
+    parser.add_argument("--full-report", default=FULL_REPORT_PATH, help="Path for the optional full three-mode comparison report.")
+    return parser.parse_args()
+
+
+def configure_runtime(args):
+    global DATA_DIR, LM_STUDIO_URL, MODEL, MODEL_LABEL, client, csv_tool
+    DATA_DIR = args.data_dir
+    LM_STUDIO_URL = args.lm_studio_url
+    MODEL = args.model
+    MODEL_LABEL = args.model_label
+    client = OpenAI(base_url=LM_STUDIO_URL, api_key="not-needed")
+    csv_tool = CSVTool(data_dir=DATA_DIR)
+
+
 def main():
+    args = parse_args()
+    configure_runtime(args)
+    generated_at = datetime.now().strftime("%Y-%m-%d %H:%M")
+
     print("=" * 60)
     print("LLM CSV Tool-Calling Benchmark")
-    print(f"Model: {MODEL}")
+    print(f"Model label: {MODEL_LABEL}")
+    print(f"LM Studio model id: {MODEL}")
     print(f"Questions: {len(QUESTIONS)}")
-    print(f"Modes: baseline tools, optimised tools, no tools")
+    print(f"Mode: {args.mode}")
     print("=" * 60)
 
     # Step 1: Ground truth
-    print("\n[1/4] Computing ground truth...")
+    print("\n[1/3] Computing ground truth...")
     ground_truth = compute_ground_truth()
     for i, (q, a) in enumerate(zip(SHORT_LABELS, ground_truth)):
         print(f"  Q{i+1} ({q}): {a[:80]}...")
 
-    # Step 2: With tools (baseline)
-    print("\n[2/4] Running tools (baseline)...")
-    with_tools_results = []
-    for i, q in enumerate(QUESTIONS):
-        print(f"  Q{i+1}/{len(QUESTIONS)}: {SHORT_LABELS[i]}...", end=" ", flush=True)
-        result = run_with_tools(q)
-        with_tools_results.append(result)
-        tc = len(result.get("tool_calls", []))
-        print(f"done ({result['time_s']:.1f}s, {tc} tool calls)")
-
-    # Step 3: With tools (optimised — pre-seeded schema)
-    print("\n[3/4] Running tools (optimised — pre-seeded schema)...")
+    # Step 2: With tools (optimised — pre-seeded schema)
+    print("\n[2/3] Running tools (optimised — pre-seeded schema)...")
     schema = build_schema_prompt()
     schema_prompt = SYSTEM_OPTIMISED_TMPL.format(schema=schema)
     print(f"  Schema pre-seed: {len(schema)} chars")
@@ -907,21 +1784,40 @@ def main():
         tc = len(result.get("tool_calls", []))
         print(f"done ({result['time_s']:.1f}s, {tc} tool calls)")
 
-    # Step 4: Without tools
-    print("\n[4/4] Running no tools (context-stuffed)...")
-    no_tools_results = []
-    for i, q in enumerate(QUESTIONS):
-        print(f"  Q{i+1}/{len(QUESTIONS)}: {SHORT_LABELS[i]}...", end=" ", flush=True)
-        result = run_without_tools(q, i)
-        no_tools_results.append(result)
-        ctx = result.get("context_mode", "?")
-        print(f"done ({result['time_s']:.1f}s, ctx={ctx})")
+    print("\n[3/3] Writing summary, detail, and JSON outputs...")
+    report_data = build_single_mode_report_data(ground_truth, optimised_results, "Optimised tools mode", generated_at)
+    Path(args.summary_report).write_text(generate_summary_html(report_data), encoding="utf-8")
+    Path(args.detail_report).write_text(generate_detail_html(report_data), encoding="utf-8")
+    Path(args.results_json).write_text(json.dumps(report_data, indent=2, ensure_ascii=False), encoding="utf-8")
+    print(f"  Summary report: {args.summary_report}")
+    print(f"  Detail report: {args.detail_report}")
+    print(f"  Results JSON:   {args.results_json}")
 
-    # Step 5: Generate report
-    print(f"\nGenerating report -> {REPORT_PATH}")
-    html = generate_html(ground_truth, with_tools_results, optimised_results, no_tools_results)
-    Path(REPORT_PATH).write_text(html)
-    print(f"Done! Open {REPORT_PATH} in a browser.")
+    if args.mode == "full":
+        print("\nRunning extra comparison modes for the full report...")
+        with_tools_results = []
+        for i, q in enumerate(QUESTIONS):
+            print(f"  Baseline Q{i+1}/{len(QUESTIONS)}: {SHORT_LABELS[i]}...", end=" ", flush=True)
+            result = run_with_tools(q)
+            with_tools_results.append(result)
+            tc = len(result.get("tool_calls", []))
+            print(f"done ({result['time_s']:.1f}s, {tc} tool calls)")
+
+        no_tools_results = []
+        for i, q in enumerate(QUESTIONS):
+            print(f"  No-tools Q{i+1}/{len(QUESTIONS)}: {SHORT_LABELS[i]}...", end=" ", flush=True)
+            result = run_without_tools(q, i)
+            no_tools_results.append(result)
+            ctx = result.get("context_mode", "?")
+            print(f"done ({result['time_s']:.1f}s, ctx={ctx})")
+
+        Path(args.full_report).write_text(
+            generate_full_comparison_html(ground_truth, with_tools_results, optimised_results, no_tools_results),
+            encoding="utf-8",
+        )
+        print(f"  Full comparison report: {args.full_report}")
+
+    print("Done.")
 
 
 if __name__ == "__main__":

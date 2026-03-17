@@ -3,177 +3,189 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>LLM CSV Benchmark Report</title>
+<title>Benchmark Summary</title>
 <style>
   :root {
-    --bg: #f4efe6;
+    --bg: #f4efe7;
     --paper: #fffdf8;
-    --ink: #1f1b16;
-    --muted: #6a6258;
-    --line: #d8c9b3;
-    --accent: #15616d;
-    --accent-soft: #d7ecef;
+    --frame-bg: rgba(255, 253, 248, 0.92);
+    --float-bg: rgba(255, 253, 248, 0.88);
+    --hover-bg: #fff7ef;
+    --bg-glow-1: rgba(180, 77, 22, 0.08);
+    --bg-glow-2: rgba(31, 93, 99, 0.09);
+    --ink: #1e1812;
+    --muted: #6e655c;
+    --line: #dbcab5;
+    --accent: #b44d16;
+    --accent-dark: #7d2e0d;
+    --accent-soft: #f7dfcf;
+    --teal: #1f5d63;
+    --teal-soft: #dceef0;
     --success: #2f7d32;
-    --success-soft: #dff3df;
+    --success-soft: #e1f2e2;
     --warning: #9a6700;
-    --warning-soft: #f8ebc7;
-    --shadow: 0 18px 48px rgba(55, 39, 22, 0.08);
+    --warning-soft: #f5ead2;
+    --danger: #9b2c2c;
+    --danger-soft: #f8dedd;
+    --shadow: 0 18px 48px rgba(63, 38, 15, 0.10);
   }
-
-  * {
-    box-sizing: border-box;
-  }
-
+  * { box-sizing: border-box; }
   body {
     margin: 0;
-    font-family: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Georgia, serif;
-    background:
-      radial-gradient(circle at top right, rgba(21, 97, 109, 0.12), transparent 32%),
-      linear-gradient(180deg, #f7f1e8 0%, var(--bg) 100%);
+    font-family: "Avenir Next", "Segoe UI", sans-serif;
     color: var(--ink);
-    line-height: 1.6;
+    background:
+      radial-gradient(circle at top right, var(--bg-glow-1), transparent 24%),
+      radial-gradient(circle at bottom left, var(--bg-glow-2), transparent 28%),
+      var(--bg);
   }
-
+  a {
+    color: inherit;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 0.18em;
+    text-decoration-color: color-mix(in srgb, var(--accent) 55%, transparent);
+  }
+  a:hover { color: var(--accent); }
   .wrap {
     width: min(1180px, calc(100% - 32px));
     margin: 32px auto 48px;
   }
-
   .hero,
   .panel,
-  .table-panel {
-    background: rgba(255, 253, 248, 0.94);
-    border: 1px solid rgba(216, 201, 179, 0.9);
-    border-radius: 24px;
+  .table-panel,
+  .stat {
+    border: 1px solid var(--line);
+    border-radius: 28px;
+    background: var(--frame-bg);
     box-shadow: var(--shadow);
     backdrop-filter: blur(8px);
   }
-
-  .hero {
+  .hero,
+  .panel,
+  .table-panel {
     padding: 32px;
+  }
+  .hero {
     margin-bottom: 24px;
   }
-
   .eyebrow {
-    display: inline-block;
-    padding: 6px 10px;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 18px;
+    padding: 7px 12px;
     border-radius: 999px;
     background: var(--accent-soft);
-    color: var(--accent);
+    color: var(--accent-dark);
     font-size: 12px;
-    font-weight: 700;
-    letter-spacing: 0.08em;
+    font-weight: 800;
+    letter-spacing: 0.12em;
     text-transform: uppercase;
   }
-
+  .eyebrow::before {
+    content: "";
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--accent);
+  }
   h1 {
-    margin: 14px 0 12px;
-    font-size: clamp(34px, 5vw, 54px);
-    line-height: 1.05;
+    margin: 0;
+    font-size: clamp(40px, 6vw, 64px);
+    line-height: 0.98;
+    letter-spacing: -0.04em;
+  }
+  h2 {
+    margin: 0 0 14px;
+    font-size: 24px;
     letter-spacing: -0.03em;
   }
-
-  .subtitle {
-    max-width: 760px;
-    margin: 0;
+  .lede {
+    margin-top: 18px;
+    max-width: 900px;
+    font-size: clamp(18px, 2.1vw, 26px);
+    line-height: 1.45;
     color: var(--muted);
-    font-size: 18px;
   }
-
   .hero-note {
     margin-top: 18px;
     color: var(--muted);
     font-size: 14px;
+    line-height: 1.7;
   }
-
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 24px;
+  }
+  .action-link {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 11px 16px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: var(--paper);
+    text-decoration: none;
+    font-weight: 700;
+  }
   .stats {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 16px;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 18px;
     margin-bottom: 24px;
   }
-
   .stat {
-    padding: 22px 24px;
-    border-radius: 20px;
+    padding: 22px;
     background: var(--paper);
-    border: 1px solid var(--line);
-    box-shadow: var(--shadow);
   }
-
   .stat .label {
     color: var(--muted);
-    font-size: 13px;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.10em;
     text-transform: uppercase;
-    letter-spacing: 0.08em;
-    font-weight: 700;
   }
-
   .stat .value {
     margin-top: 8px;
-    font-size: 34px;
+    font-size: clamp(32px, 4vw, 56px);
     line-height: 1;
-    font-weight: 700;
-    letter-spacing: -0.03em;
+    font-weight: 800;
+    letter-spacing: -0.06em;
   }
-
   .stat .subvalue {
     margin-top: 10px;
     color: var(--muted);
-    font-size: 14px;
+    line-height: 1.6;
   }
-
-  .success {
-    color: var(--success);
-  }
-
   .grid {
     display: grid;
-    grid-template-columns: 1.15fr 0.85fr;
-    gap: 24px;
+    grid-template-columns: 1.2fr 0.8fr;
+    gap: 18px;
     margin-bottom: 24px;
   }
-
-  .panel,
-  .table-panel {
-    padding: 24px;
+  .callout {
+    margin-top: 18px;
+    padding: 16px 18px;
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    background: var(--paper);
+    border-bottom: 2px solid var(--accent);
+    color: var(--muted);
+    line-height: 1.7;
   }
-
-  h2 {
-    margin: 0 0 14px;
-    font-size: 22px;
-    letter-spacing: -0.02em;
-  }
-
-  p {
-    margin: 0 0 14px;
-  }
-
   ul {
     margin: 0;
     padding-left: 20px;
+    color: var(--muted);
+    line-height: 1.7;
   }
-
-  li + li {
-    margin-top: 8px;
-  }
-
-  .callout {
-    margin-top: 16px;
-    padding: 14px 16px;
-    border-radius: 16px;
-    background: var(--warning-soft);
-    color: #5f4500;
-    border: 1px solid rgba(154, 103, 0, 0.18);
-    font-size: 14px;
-  }
-
+  li + li { margin-top: 6px; }
   table {
     width: 100%;
     border-collapse: collapse;
-    font-size: 14px;
   }
-
   th,
   td {
     padding: 12px 10px;
@@ -181,62 +193,48 @@
     text-align: left;
     vertical-align: top;
   }
-
   th {
-    font-size: 12px;
     color: var(--muted);
-    text-transform: uppercase;
+    font-size: 12px;
+    font-weight: 800;
     letter-spacing: 0.08em;
+    text-transform: uppercase;
   }
-
-  tr:last-child td {
-    border-bottom: none;
+  tr:last-child td { border-bottom: none; }
+  .row-subtle {
+    margin-top: 4px;
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.5;
   }
-
   .badge {
     display: inline-block;
-    padding: 4px 8px;
+    padding: 5px 8px;
     border-radius: 999px;
     font-size: 12px;
     font-weight: 700;
     white-space: nowrap;
   }
-
-  .badge-pass {
-    background: var(--success-soft);
-    color: var(--success);
-  }
-
-  .badge-easy {
-    background: #dff3df;
-    color: #2f7d32;
-  }
-
-  .badge-medium {
-    background: #f8ebc7;
-    color: #9a6700;
-  }
-
-  .badge-hard {
-    background: #f7d9d3;
-    color: #9b2c2c;
-  }
-
+  .badge-easy { background: var(--success-soft); color: var(--success); }
+  .badge-medium { background: var(--warning-soft); color: var(--warning); }
+  .badge-hard { background: var(--danger-soft); color: var(--danger); }
+  .score-pass { background: var(--success-soft); color: var(--success); }
+  .score-partial { background: var(--warning-soft); color: var(--warning); }
+  .score-weak, .score-miss, .score-fail { background: var(--danger-soft); color: var(--danger); }
   .foot {
     margin-top: 18px;
     color: var(--muted);
     font-size: 13px;
+    line-height: 1.6;
   }
-
-  @media (max-width: 920px) {
+  @media (max-width: 980px) {
+    .stats,
     .grid {
       grid-template-columns: 1fr;
     }
-
     .table-panel {
       overflow-x: auto;
     }
-
     table {
       min-width: 720px;
     }
@@ -246,100 +244,257 @@
 <body>
   <div class="wrap">
     <section class="hero">
-      <div class="eyebrow">Refreshed 17 March 2026</div>
-      <h1>LLM CSV Benchmark Report</h1>
-      <p class="subtitle">
-        This report replaces the older three-mode snapshot with the latest verified state of the optimised tool stack.
-        It reflects the joined-tool redesign, the one-shot answer flow, and the corrected scorer.
+      <div class="eyebrow">Benchmark summary</div>
+      <h1>Optimised local tool benchmark</h1>
+      <p class="lede">
+        This page summarises the latest rerun of the school question set against the current local setup.
+        The detailed per-question evidence is linked below.
       </p>
       <p class="hero-note">
-        Model: <strong>qwen3.5-35b-a3b</strong> via LM Studio · Scope: <strong>optimised tools mode</strong> · Dataset: <strong>14 school-data questions</strong>
+        Tested model: <strong>mlx-community/Qwen3.5-35B-A3B-4bit mlx</strong><br>
+        LM Studio API model id: <strong>qwen3.5-35b-a3b</strong><br>
+        Scope: <strong>Optimised tools mode</strong> · Questions: <strong>14</strong> · Generated: <strong>2026-03-17 21:57</strong>
       </p>
+      <div class="actions">
+        <a class="action-link" href="./benchmark_results.html">View detailed results</a>
+        <a class="action-link" href="./benchmark_results.json">Open raw results JSON</a>
+        <a class="action-link" href="https://github.com/tinkertanker/local-llm-schdata-testing/blob/main/benchmark.py" target="_blank" rel="noreferrer">View benchmark harness on GitHub</a>
+      </div>
     </section>
 
     <section class="stats">
-      <div class="stat">
-        <div class="label">Verified Pass Rate</div>
-        <div class="value success">14 / 14</div>
-        <div class="subvalue">All benchmark questions passed in the latest verified optimised run.</div>
-      </div>
-      <div class="stat">
-        <div class="label">Average Time</div>
-        <div class="value">19.0s</div>
-        <div class="subvalue">266.3 seconds total across the full optimised suite.</div>
-      </div>
-      <div class="stat">
-        <div class="label">Tool Calls</div>
+      <article class="stat">
+        <div class="label">Worked</div>
+        <div class="value">14 / 14</div>
+        <div class="subvalue">Questions judged as worked in the latest rerun.</div>
+      </article>
+      <article class="stat">
+        <div class="label">Average time</div>
+        <div class="value">55.7s</div>
+        <div class="subvalue">779.2 seconds total across the run.</div>
+      </article>
+      <article class="stat">
+        <div class="label">Tool calls</div>
         <div class="value">15</div>
-        <div class="subvalue">One joined tool for every question except Q2, which needed two generic calls.</div>
-      </div>
-      <div class="stat">
-        <div class="label">Regression Tests</div>
-        <div class="value">8 / 8</div>
-        <div class="subvalue">Deterministic unit tests pass for joined tools and scorer behaviour.</div>
-      </div>
+        <div class="subvalue">Total tool calls made in the optimised mode run.</div>
+      </article>
+      <article class="stat">
+        <div class="label">Slowest question</div>
+        <div class="value">101.7s</div>
+        <div class="subvalue">Students per class</div>
+      </article>
     </section>
 
     <section class="grid">
       <article class="panel">
-        <h2>What Changed</h2>
+        <h2>What this rerun shows</h2>
         <ul>
-          <li><strong>Joined tools:</strong> `get_student_overview`, `get_student_teachers`, `get_student_location`, `find_students_same_subjects`, and `get_level_teachers` now cover the benchmark’s hard multi-file reasoning directly.</li>
-          <li><strong>One-shot answer flow:</strong> once a joined tool returns, the harness immediately forces a final answer instead of letting the local model loop.</li>
-          <li><strong>Cleaner payloads:</strong> joined tools now return explicit summary fields that the model can quote safely without recomputing the facts.</li>
-          <li><strong>Generic tool improvements:</strong> `query` now supports `in` and `not_in`, and CSV reads are cached within a run.</li>
-          <li><strong>Scorer fixes:</strong> compound facts such as profile fields and `Subject (Rigour): Teacher` now score correctly, and the ambiguous Q14 interpretation is explicitly accepted.</li>
+          <li>The benchmark was rerun against the model currently served by LM Studio, with the report now driven by the actual outputs from that run.</li>
+          <li>Each question is shown with the prompt, expected answer, model answer, elapsed time, tool usage, and a plain-language assessment.</li>
+          <li>The detailed page is intended to make it easier to explain the result to the school without relying on a static hand-written summary.</li>
         </ul>
-      </article>
-
-      <article class="panel">
-        <h2>Verification Scope</h2>
-        <p>
-          The report is intentionally scoped to the current <strong>optimised tools mode</strong>, because that is the configuration that was revalidated after the tooling redesign.
-        </p>
-        <p>
-          The previous baseline and no-tools figures were not rerun for this refresh, so they are omitted rather than carried forward as stale numbers.
-        </p>
         <div class="callout">
-          Source of truth for this refresh:
-          <strong>live optimised benchmark run = 14/14 PASS</strong> and
-          <strong>`python3 -m unittest test_csv_tool.py` = 8/8 PASS</strong>.
+          The expected answers are derived directly from the sample CSV data, and the judgement text is generated from the benchmark fact checks with a small benchmark-specific interpretation for the final “most common classes” question.
         </div>
+      </article>
+      <article class="panel">
+        <h2>Relevant files</h2>
+        <ul>
+          <li><a href="https://github.com/tinkertanker/local-llm-schdata-testing/blob/main/sample_data/S1EL_3.csv" target="_blank" rel="noreferrer">Original source CSV</a></li>
+          <li><a href="https://github.com/tinkertanker/local-llm-schdata-testing/blob/main/csv_tool.py" target="_blank" rel="noreferrer">Local tool layer</a></li>
+          <li><a href="https://github.com/tinkertanker/local-llm-schdata-testing/blob/main/bridge.py" target="_blank" rel="noreferrer">LM Studio bridge</a></li>
+          <li><a href="https://github.com/tinkertanker/local-llm-schdata-testing/blob/main/benchmark.py" target="_blank" rel="noreferrer">Benchmark harness</a></li>
+        </ul>
       </article>
     </section>
 
     <section class="table-panel">
-      <h2>Per-Question Status</h2>
+      <h2>Per-question summary</h2>
       <table>
         <thead>
           <tr>
             <th>#</th>
             <th>Question</th>
             <th>Difficulty</th>
-            <th>Status</th>
+            <th>Assessment</th>
             <th>Time</th>
             <th>Calls</th>
           </tr>
         </thead>
         <tbody>
-          <tr><td>1</td><td>How many classes are there?</td><td><span class="badge badge-easy">Easy</span></td><td><span class="badge badge-pass">PASS</span></td><td>21.3s</td><td>1</td></tr>
-          <tr><td>2</td><td>How many students are there in each class?</td><td><span class="badge badge-easy">Easy</span></td><td><span class="badge badge-pass">PASS</span></td><td>29.0s</td><td>2</td></tr>
-          <tr><td>3</td><td>What subjects does Qian Hui Zheng take?</td><td><span class="badge badge-easy">Easy</span></td><td><span class="badge badge-pass">PASS</span></td><td>17.8s</td><td>1</td></tr>
-          <tr><td>4</td><td>What's the rigour of each subject that Qian Hui Zheng takes?</td><td><span class="badge badge-easy">Easy</span></td><td><span class="badge badge-pass">PASS</span></td><td>18.2s</td><td>1</td></tr>
-          <tr><td>5</td><td>Who teaches S1 HONOUR 1?</td><td><span class="badge badge-easy">Easy</span></td><td><span class="badge badge-pass">PASS</span></td><td>20.6s</td><td>1</td></tr>
-          <tr><td>6</td><td>Who teaches Qian Hui Zheng?</td><td><span class="badge badge-hard">Hard</span></td><td><span class="badge badge-pass">PASS</span></td><td>15.5s</td><td>1</td></tr>
-          <tr><td>7</td><td>Who teaches S1 level?</td><td><span class="badge badge-easy">Easy</span></td><td><span class="badge badge-pass">PASS</span></td><td>16.3s</td><td>1</td></tr>
-          <tr><td>8</td><td>Where is Qian Hui Zheng now? Assume it's Monday Period 1.</td><td><span class="badge badge-medium">Medium</span></td><td><span class="badge badge-pass">PASS</span></td><td>14.5s</td><td>1</td></tr>
-          <tr><td>9</td><td>Tell me about Qian Hui Zheng.</td><td><span class="badge badge-easy">Easy</span></td><td><span class="badge badge-pass">PASS</span></td><td>21.9s</td><td>1</td></tr>
-          <tr><td>10</td><td>What are the EL grades for Qian Hui Zheng for the past 3 years?</td><td><span class="badge badge-easy">Easy</span></td><td><span class="badge badge-pass">PASS</span></td><td>17.2s</td><td>1</td></tr>
-          <tr><td>11</td><td>What's Qian Hui Zheng's attendance?</td><td><span class="badge badge-easy">Easy</span></td><td><span class="badge badge-pass">PASS</span></td><td>18.4s</td><td>1</td></tr>
-          <tr><td>12</td><td>Who takes the same subjects as Qian Hui Zheng?</td><td><span class="badge badge-hard">Hard</span></td><td><span class="badge badge-pass">PASS</span></td><td>17.2s</td><td>1</td></tr>
-          <tr><td>13</td><td>Who's in the same EL class as Qian Hui Zheng?</td><td><span class="badge badge-easy">Easy</span></td><td><span class="badge badge-pass">PASS</span></td><td>19.8s</td><td>1</td></tr>
-          <tr><td>14</td><td>Who has the most common classes as Qian Hui Zheng?</td><td><span class="badge badge-medium">Medium</span></td><td><span class="badge badge-pass">PASS</span></td><td>18.6s</td><td>1</td></tr>
+          
+        <tr>
+          <td>1</td>
+          <td>
+            <strong>Class count</strong>
+            <div class="row-subtle">How many classes are there?</div>
+          </td>
+          <td><span class="badge badge-easy">Easy</span></td>
+          <td><span class="badge score-pass">Worked</span></td>
+          <td>43.2s</td>
+          <td>1</td>
+        </tr>
+        
+        <tr>
+          <td>2</td>
+          <td>
+            <strong>Students per class</strong>
+            <div class="row-subtle">How many students are there in each class?</div>
+          </td>
+          <td><span class="badge badge-easy">Easy</span></td>
+          <td><span class="badge score-pass">Worked</span></td>
+          <td>101.7s</td>
+          <td>2</td>
+        </tr>
+        
+        <tr>
+          <td>3</td>
+          <td>
+            <strong>Student subjects</strong>
+            <div class="row-subtle">What subjects does Qian Hui Zheng take?</div>
+          </td>
+          <td><span class="badge badge-easy">Easy</span></td>
+          <td><span class="badge score-pass">Worked</span></td>
+          <td>76.0s</td>
+          <td>1</td>
+        </tr>
+        
+        <tr>
+          <td>4</td>
+          <td>
+            <strong>Subject rigour</strong>
+            <div class="row-subtle">What's the rigour of each subject that Qian Hui Zheng takes?</div>
+          </td>
+          <td><span class="badge badge-easy">Easy</span></td>
+          <td><span class="badge score-pass">Worked</span></td>
+          <td>99.5s</td>
+          <td>1</td>
+        </tr>
+        
+        <tr>
+          <td>5</td>
+          <td>
+            <strong>Class teacher</strong>
+            <div class="row-subtle">Who teaches S1 HONOUR 1?</div>
+          </td>
+          <td><span class="badge badge-easy">Easy</span></td>
+          <td><span class="badge score-pass">Worked</span></td>
+          <td>64.8s</td>
+          <td>1</td>
+        </tr>
+        
+        <tr>
+          <td>6</td>
+          <td>
+            <strong>Student's teachers</strong>
+            <div class="row-subtle">Who teaches Qian Hui Zheng?</div>
+          </td>
+          <td><span class="badge badge-hard">Hard</span></td>
+          <td><span class="badge score-pass">Worked</span></td>
+          <td>68.9s</td>
+          <td>1</td>
+        </tr>
+        
+        <tr>
+          <td>7</td>
+          <td>
+            <strong>Level teachers</strong>
+            <div class="row-subtle">Who teaches S1 level?</div>
+          </td>
+          <td><span class="badge badge-easy">Easy</span></td>
+          <td><span class="badge score-pass">Worked</span></td>
+          <td>57.4s</td>
+          <td>1</td>
+        </tr>
+        
+        <tr>
+          <td>8</td>
+          <td>
+            <strong>Student location</strong>
+            <div class="row-subtle">Where is Qian Hui Zheng now? Assume it's Monday Period 1.</div>
+          </td>
+          <td><span class="badge badge-medium">Medium</span></td>
+          <td><span class="badge score-pass">Worked</span></td>
+          <td>57.5s</td>
+          <td>1</td>
+        </tr>
+        
+        <tr>
+          <td>9</td>
+          <td>
+            <strong>Student profile</strong>
+            <div class="row-subtle">Tell me about Qian Hui Zheng.</div>
+          </td>
+          <td><span class="badge badge-easy">Easy</span></td>
+          <td><span class="badge score-pass">Worked</span></td>
+          <td>53.2s</td>
+          <td>1</td>
+        </tr>
+        
+        <tr>
+          <td>10</td>
+          <td>
+            <strong>EL history</strong>
+            <div class="row-subtle">What are the EL grades for Qian Hui Zheng for the past 3 years?</div>
+          </td>
+          <td><span class="badge badge-easy">Easy</span></td>
+          <td><span class="badge score-pass">Worked</span></td>
+          <td>26.5s</td>
+          <td>1</td>
+        </tr>
+        
+        <tr>
+          <td>11</td>
+          <td>
+            <strong>Attendance</strong>
+            <div class="row-subtle">What's Qian Hui Zheng's attendance?</div>
+          </td>
+          <td><span class="badge badge-easy">Easy</span></td>
+          <td><span class="badge score-pass">Worked</span></td>
+          <td>27.8s</td>
+          <td>1</td>
+        </tr>
+        
+        <tr>
+          <td>12</td>
+          <td>
+            <strong>Same subjects</strong>
+            <div class="row-subtle">Who takes the same subjects as Qian Hui Zheng?</div>
+          </td>
+          <td><span class="badge badge-hard">Hard</span></td>
+          <td><span class="badge score-pass">Worked</span></td>
+          <td>27.5s</td>
+          <td>1</td>
+        </tr>
+        
+        <tr>
+          <td>13</td>
+          <td>
+            <strong>Same EL class</strong>
+            <div class="row-subtle">Who's in the same EL class as Qian Hui Zheng?</div>
+          </td>
+          <td><span class="badge badge-easy">Easy</span></td>
+          <td><span class="badge score-pass">Worked</span></td>
+          <td>43.5s</td>
+          <td>1</td>
+        </tr>
+        
+        <tr>
+          <td>14</td>
+          <td>
+            <strong>Most common classes</strong>
+            <div class="row-subtle">Who has the most common classes as Qian Hui Zheng?</div>
+          </td>
+          <td><span class="badge badge-medium">Medium</span></td>
+          <td><span class="badge score-pass">Worked</span></td>
+          <td>31.7s</td>
+          <td>1</td>
+        </tr>
+        
         </tbody>
       </table>
       <p class="foot">
-        This HTML file was refreshed manually to reflect the current verified benchmark state without triggering a new multi-mode run.
+        Full query-by-query evidence is available in <a href="./benchmark_results.html">benchmark_results.html</a>.
       </p>
     </section>
   </div>

@@ -96,7 +96,15 @@ The LLM can call these functions:
 
 ## Benchmark
 
-`benchmark.py` tests how well a local LLM answers 14 school-data questions across three modes:
+`benchmark.py` tests how well a local LLM answers 14 school-data questions. The current reporting flow is focused on the optimised tool setup and writes:
+
+- `benchmark_report.html` — summary page for the latest run
+- `benchmark_results.html` — detailed per-question evidence, including prompt, expected answer, model answer, timing, and assessment
+- `benchmark_results.json` — machine-readable result bundle
+
+An optional `--mode full` rerun also writes `benchmark_full_report.html` with the older three-mode comparison.
+
+The full comparison modes are:
 
 | Mode | Description |
 |------|-------------|
@@ -104,17 +112,22 @@ The LLM can call these functions:
 | **Tools (optimised)** | Same tools, but file list and column schemas are pre-seeded in the system prompt |
 | **No tools** | Raw CSV data stuffed into the system prompt; no tool access |
 
-Latest verified result on **16 March 2026** with `qwen3.5-35b-a3b`:
+Latest rerun on **17 March 2026** with `mlx-community/Qwen3.5-35B-A3B-4bit mlx` via LM Studio model id `qwen3.5-35b-a3b`:
 
-- **Tools (optimised): 14/14 PASS**
-- Achieved by combining pre-seeded schema, one-shot joined tools, one-shot answer forcing, and a stricter fact scorer that handles compound facts correctly
+- **Optimised tools mode: 14/14 worked**
+- **Average time:** 55.7s per question
+- **Total tool calls:** 15
+- The generated HTML now includes a summary page plus a detailed question-by-question evidence page
 
 ### Running the benchmark
 
 ```bash
-# Edit MODEL at the top of benchmark.py to match your LM Studio model ID
-python benchmark.py
-# Opens benchmark_report.html when done
+python benchmark.py \
+  --mode optimised \
+  --model qwen3.5-35b-a3b \
+  --model-label "mlx-community/Qwen3.5-35B-A3B-4bit mlx"
+
+# Outputs benchmark_report.html, benchmark_results.html, and benchmark_results.json
 ```
 
 ### Sample data

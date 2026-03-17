@@ -1,0 +1,581 @@
+{
+  "generated_at": "2026-03-17 21:57",
+  "model_id": "qwen3.5-35b-a3b",
+  "model_label": "mlx-community/Qwen3.5-35B-A3B-4bit mlx",
+  "mode_label": "Optimised tools mode",
+  "student": "Qian Hui Zheng",
+  "question_count": 14,
+  "summary": {
+    "pass_count": 14,
+    "partial_count": 14,
+    "fail_count": 0,
+    "total_time_s": 779.1680085659027,
+    "average_time_s": 55.654857754707336,
+    "tool_calls": 15,
+    "longest_question_label": "Students per class",
+    "longest_question_time_s": 101.74214386940002
+  },
+  "questions": [
+    {
+      "index": 1,
+      "short_label": "Class count",
+      "question": "How many classes are there?",
+      "difficulty": "Easy",
+      "expected_answer": "8 classes: S1 EXCELLENCE 1, S1 EXCELLENCE 2, S1 HONOUR 1, S1 HONOUR 2, S1 RESPECT 1, S1 RESPECT 2, S1 WISDOM 1, S1 WISDOM 2",
+      "model_answer": "There are **8 classes** in total:\n\n1. S1 HONOUR 1\n2. S1 HONOUR 2\n3. S1 RESPECT 1\n4. S1 RESPECT 2\n5. S1 EXCELLENCE 1\n6. S1 EXCELLENCE 2\n7. S1 WISDOM 1\n8. S1 WISDOM 2",
+      "time_s": 43.23502016067505,
+      "tool_calls": [
+        {
+          "tool": "distinct",
+          "args": {
+            "file": "class_info.csv",
+            "column": "CLASS"
+          }
+        }
+      ],
+      "tool_call_count": 1,
+      "judgement": {
+        "score": 3,
+        "label": "PASS",
+        "css": "score-pass",
+        "verdict": "Worked",
+        "reasoning": "Worked. The answer covered the expected benchmark facts.",
+        "matched_facts": [
+          "1",
+          "2",
+          "8",
+          "8 classes",
+          "s1 excellence 1",
+          "s1 excellence 2",
+          "s1 honour 1",
+          "s1 honour 2",
+          "s1 respect 1",
+          "s1 respect 2",
+          "s1 wisdom 1",
+          "s1 wisdom 2"
+        ],
+        "missing_facts": [],
+        "matched_count": 12,
+        "total_facts": 12
+      }
+    },
+    {
+      "index": 2,
+      "short_label": "Students per class",
+      "question": "How many students are there in each class?",
+      "difficulty": "Easy",
+      "expected_answer": "S1 EXCELLENCE 1: 4; S1 EXCELLENCE 2: 4; S1 HONOUR 1: 4; S1 HONOUR 2: 4; S1 RESPECT 1: 4; S1 RESPECT 2: 4; S1 WISDOM 1: 4; S1 WISDOM 2: 4",
+      "model_answer": "There are **4 students** in each of the 8 classes:\n\n- S1 EXCELLENCE 1: 4 students\n- S1 EXCELLENCE 2: 4 students\n- S1 HONOUR 1: 4 students\n- S1 HONOUR 2: 4 students\n- S1 RESPECT 1: 4 students\n- S1 RESPECT 2: 4 students\n- S1 WISDOM 1: 4 students\n- S1 WISDOM 2: 4 students\n\nTotal: 32 students across all classes.",
+      "time_s": 101.74214386940002,
+      "tool_calls": [
+        {
+          "tool": "summarise",
+          "args": {
+            "file": "class_info.csv",
+            "group_by": "CLASS",
+            "metric": "count"
+          }
+        },
+        {
+          "tool": "summarise",
+          "args": {
+            "file": "students.csv",
+            "group_by": "ACADEMIC CLASS",
+            "metric": "count"
+          }
+        }
+      ],
+      "tool_call_count": 2,
+      "judgement": {
+        "score": 3,
+        "label": "PASS",
+        "css": "score-pass",
+        "verdict": "Worked",
+        "reasoning": "Worked. The answer covered the expected benchmark facts.",
+        "matched_facts": [
+          "1",
+          "2",
+          "4",
+          "s1 excellence 1",
+          "s1 excellence 2",
+          "s1 honour 1",
+          "s1 honour 2",
+          "s1 respect 1",
+          "s1 respect 2",
+          "s1 wisdom 1",
+          "s1 wisdom 2"
+        ],
+        "missing_facts": [],
+        "matched_count": 11,
+        "total_facts": 11
+      }
+    },
+    {
+      "index": 3,
+      "short_label": "Student subjects",
+      "question": "What subjects does Qian Hui Zheng take?",
+      "difficulty": "Easy",
+      "expected_answer": "English Language, Mathematics, Science, Mother Tongue (Chinese), Humanities, Art",
+      "model_answer": "Qian Hui Zheng takes the following subjects:\n\n1. **Art** (Standard rigour) - Teacher: Brain Brandt\n2. **English Language** (Higher rigour) - Teacher: Gwendolyn Cabrera\n3. **Humanities** (Standard rigour) - Teacher: Gwendolyn Cabrera\n4. **Mathematics** (Higher rigour) - Teacher: Neal Mullen\n5. **Mother Tongue (Chinese)** (Higher rigour) - Teacher: Sasha Conner\n6. **Science** (Higher rigour) - Teacher: Leif Guerrero",
+      "time_s": 76.0140769481659,
+      "tool_calls": [
+        {
+          "tool": "get_student_overview",
+          "args": {
+            "student": "Qian Hui Zheng"
+          }
+        }
+      ],
+      "tool_call_count": 1,
+      "judgement": {
+        "score": 3,
+        "label": "PASS",
+        "css": "score-pass",
+        "verdict": "Worked",
+        "reasoning": "Worked. The answer covered the expected benchmark facts.",
+        "matched_facts": [
+          "art",
+          "english language",
+          "humanities",
+          "mathematics",
+          "mother tongue (chinese)",
+          "science"
+        ],
+        "missing_facts": [],
+        "matched_count": 6,
+        "total_facts": 6
+      }
+    },
+    {
+      "index": 4,
+      "short_label": "Subject rigour",
+      "question": "What's the rigour of each subject that Qian Hui Zheng takes?",
+      "difficulty": "Easy",
+      "expected_answer": "English Language: Higher; Mathematics: Higher; Science: Higher; Mother Tongue (Chinese): Higher; Humanities: Standard; Art: Standard",
+      "model_answer": "Based on the student overview for Qian Hui Zheng, here are the rigour levels for each subject:\n\n| Subject | Rigour Level |\n|---------|--------------|\n| Art | Standard |\n| English Language | Higher |\n| Humanities | Standard |\n| Mathematics | Higher |\n| Mother Tongue (Chinese) | Higher |\n| Science | Higher |\n\nQian Hui Zheng takes 6 subjects in total, with 4 at the **Higher** rigour level and 2 at the **Standard** rigour level.",
+      "time_s": 99.51189613342285,
+      "tool_calls": [
+        {
+          "tool": "get_student_overview",
+          "args": {
+            "student": "Qian Hui Zheng"
+          }
+        }
+      ],
+      "tool_call_count": 1,
+      "judgement": {
+        "score": 3,
+        "label": "PASS",
+        "css": "score-pass",
+        "verdict": "Worked",
+        "reasoning": "Worked. The answer covered the expected benchmark facts.",
+        "matched_facts": [
+          "art",
+          "chinese",
+          "english language",
+          "higher",
+          "humanities",
+          "mathematics",
+          "mother tongue",
+          "science",
+          "standard"
+        ],
+        "missing_facts": [],
+        "matched_count": 9,
+        "total_facts": 9
+      }
+    },
+    {
+      "index": 5,
+      "short_label": "Class teacher",
+      "question": "Who teaches S1 HONOUR 1?",
+      "difficulty": "Easy",
+      "expected_answer": "NEAL MULLEN",
+      "model_answer": "NEAL MULLEN is the form teacher for S1 HONOUR 1.",
+      "time_s": 64.76596093177795,
+      "tool_calls": [
+        {
+          "tool": "query",
+          "args": {
+            "file": "class_info.csv",
+            "filters": [
+              {
+                "column": "CLASS",
+                "op": "=",
+                "value": "S1 HONOUR 1"
+              }
+            ],
+            "columns": [
+              "CLASS",
+              "FORM TEACHER"
+            ]
+          }
+        }
+      ],
+      "tool_call_count": 1,
+      "judgement": {
+        "score": 3,
+        "label": "PASS",
+        "css": "score-pass",
+        "verdict": "Worked",
+        "reasoning": "Worked. The answer covered the expected benchmark facts.",
+        "matched_facts": [
+          "neal mullen"
+        ],
+        "missing_facts": [],
+        "matched_count": 1,
+        "total_facts": 1
+      }
+    },
+    {
+      "index": 6,
+      "short_label": "Student's teachers",
+      "question": "Who teaches Qian Hui Zheng?",
+      "difficulty": "Hard",
+      "expected_answer": "English Language (Higher): GWENDOLYN CABRERA; Mathematics (Higher): NEAL MULLEN; Science (Higher): LEIF GUERRERO; Mother Tongue (Chinese) (Higher): SASHA CONNER; Humanities (Standard): GWENDOLYN CABRERA; Art (Standard): BRAIN BRANDT",
+      "model_answer": "Qian Hui Zheng is taught by the following teachers:\n\n| Subject | Rigour | Teacher |\n|---------|--------|---------|\n| Art | Standard | BRAIN BRANDT |\n| English Language | Higher | GWENDOLYN CABRERA |\n| Humanities | Standard | GWENDOLYN CABRERA |\n| Mathematics | Higher | NEAL MULLEN |\n| Mother Tongue (Chinese) | Higher | SASHA CONNER |\n| Science | Higher | LEIF GUERRERO |\n\n**Unique teachers:** BRAIN BRANDT, GWENDOLYN CABRERA, LEIF GUERRERO, NEAL MULLEN, SASHA CONNER",
+      "time_s": 68.93882012367249,
+      "tool_calls": [
+        {
+          "tool": "get_student_teachers",
+          "args": {
+            "student": "Qian Hui Zheng"
+          }
+        }
+      ],
+      "tool_call_count": 1,
+      "judgement": {
+        "score": 3,
+        "label": "PASS",
+        "css": "score-pass",
+        "verdict": "Worked",
+        "reasoning": "Worked. The answer covered the expected benchmark facts.",
+        "matched_facts": [
+          "art",
+          "brain brandt",
+          "chinese",
+          "english language",
+          "gwendolyn cabrera",
+          "higher",
+          "humanities",
+          "leif guerrero",
+          "mathematics",
+          "mother tongue",
+          "mother tongue (chinese)",
+          "neal mullen",
+          "sasha conner",
+          "science",
+          "standard"
+        ],
+        "missing_facts": [],
+        "matched_count": 15,
+        "total_facts": 15
+      }
+    },
+    {
+      "index": 7,
+      "short_label": "Level teachers",
+      "question": "Who teaches S1 level?",
+      "difficulty": "Easy",
+      "expected_answer": "BRAIN BRANDT, GWENDOLYN CABRERA, JEFFEREY OLSON, LEIF GUERRERO, NEAL MULLEN, SASHA CONNER",
+      "model_answer": "The S1 level is taught by 6 form teachers:\n\n- **BRAIN BRANDT** (S1 WISDOM 2)\n- **GWENDOLYN CABRERA** (S1 RESPECT 1)\n- **JEFFEREY OLSON** (S1 RESPECT 2)\n- **LEIF GUERRERO** (S1 EXCELLENCE 1, S1 EXCELLENCE 2)\n- **NEAL MULLEN** (S1 HONOUR 1, S1 HONOUR 2)\n- **SASHA CONNER** (S1 WISDOM 1)\n\nThese teachers are responsible for the 8 S1 classes across the Excellence, Honour, Respect, and Wisdom streams.",
+      "time_s": 57.4169979095459,
+      "tool_calls": [
+        {
+          "tool": "get_level_teachers",
+          "args": {
+            "level": "S1"
+          }
+        }
+      ],
+      "tool_call_count": 1,
+      "judgement": {
+        "score": 3,
+        "label": "PASS",
+        "css": "score-pass",
+        "verdict": "Worked",
+        "reasoning": "Worked. The answer covered the expected benchmark facts.",
+        "matched_facts": [
+          "brain brandt",
+          "gwendolyn cabrera",
+          "jefferey olson",
+          "leif guerrero",
+          "neal mullen",
+          "sasha conner"
+        ],
+        "missing_facts": [],
+        "matched_count": 6,
+        "total_facts": 6
+      }
+    },
+    {
+      "index": 8,
+      "short_label": "Student location",
+      "question": "Where is Qian Hui Zheng now? Assume it's Monday Period 1.",
+      "difficulty": "Medium",
+      "expected_answer": "Subject: English Language; Room: Room 301; Day: Monday; Period: 1",
+      "model_answer": "Qian Hui Zheng is currently in **Room 301** for English Language class on Monday Period 1.",
+      "time_s": 57.46162271499634,
+      "tool_calls": [
+        {
+          "tool": "get_student_location",
+          "args": {
+            "student": "Qian Hui Zheng",
+            "day": "Monday",
+            "period": 1
+          }
+        }
+      ],
+      "tool_call_count": 1,
+      "judgement": {
+        "score": 3,
+        "label": "PASS",
+        "css": "score-pass",
+        "verdict": "Worked",
+        "reasoning": "Worked overall. It covered 8 of 9 benchmark facts. Missing details were minor: subject.",
+        "matched_facts": [
+          "1",
+          "301",
+          "day",
+          "english language",
+          "monday",
+          "period",
+          "room",
+          "room 301"
+        ],
+        "missing_facts": [
+          "subject"
+        ],
+        "matched_count": 8,
+        "total_facts": 9
+      }
+    },
+    {
+      "index": 9,
+      "short_label": "Student profile",
+      "question": "Tell me about Qian Hui Zheng.",
+      "difficulty": "Easy",
+      "expected_answer": "Name: Qian Hui Zheng, Class: S1 EXCELLENCE 1, EL: EL - G3",
+      "model_answer": "Here's a summary of Qian Hui Zheng:\n\n**Basic Profile:**\n- **Class:** S1 EXCELLENCE 1\n- **EL Class:** EL - G3\n- **Form Teacher:** LEIF GUERRERO\n\n**Subjects & Rigour Levels:**\n| Subject | Rigour | Teacher |\n|---------|--------|---------|\n| Art | Standard | BRAIN BRANDT |\n| English Language | Higher | GWENDOLYN CABRERA |\n| Humanities | Standard | GWENDOLYN CABRERA |\n| Mathematics | Higher | NEAL MULLEN |\n| Mother Tongue (Chinese) | Higher | SASHA CONNER |\n| Science | Higher | LEIF GUERRERO |\n\n**Attendance Record:**\n- Term 1: 100.0% (50 days present, 0 absent)\n- Term 2: 100.0% (50 days present, 0 absent)\n- Term 3: 100.0% (50 days present, 0 absent)\n\n**EL History:**\n- 2024: G2 → 2025: G3 → 2026: G3\n\n**Classmates:**\n- **Same Academic Class (S1 EXCELLENCE 1):** Ryan Tay, Sarah Yeo, Timothy Loh\n- **Same EL Class (EL - G3):** Aiden Tan, Bella Lim, Benjamin Seah, Daniel Ho, Diya Sharma, Grace Lee, Isla Wong, Kayla Teo, Noah Sim, Sarah Yeo, Victor Ang, Yasmin Bte Rahman\n- **Most Shared Classmate:** Sarah Yeo (shares both academic and EL class)",
+      "time_s": 53.163211822509766,
+      "tool_calls": [
+        {
+          "tool": "get_student_overview",
+          "args": {
+            "student": "Qian Hui Zheng"
+          }
+        }
+      ],
+      "tool_call_count": 1,
+      "judgement": {
+        "score": 3,
+        "label": "PASS",
+        "css": "score-pass",
+        "verdict": "Worked",
+        "reasoning": "Worked overall. It covered 6 of 7 benchmark facts. Missing details were minor: name.",
+        "matched_facts": [
+          "1",
+          "class",
+          "el",
+          "el - g3",
+          "qian hui zheng",
+          "s1 excellence 1"
+        ],
+        "missing_facts": [
+          "name"
+        ],
+        "matched_count": 6,
+        "total_facts": 7
+      }
+    },
+    {
+      "index": 10,
+      "short_label": "EL history",
+      "question": "What are the EL grades for Qian Hui Zheng for the past 3 years?",
+      "difficulty": "Easy",
+      "expected_answer": "2024: G2; 2025: G3; 2026: G3",
+      "model_answer": "Qian Hui Zheng's EL grades for the past 3 years are:\n\n- **2024**: G2\n- **2025**: G3\n- **2026**: G3",
+      "time_s": 26.50706386566162,
+      "tool_calls": [
+        {
+          "tool": "get_student_overview",
+          "args": {
+            "student": "Qian Hui Zheng"
+          }
+        }
+      ],
+      "tool_call_count": 1,
+      "judgement": {
+        "score": 3,
+        "label": "PASS",
+        "css": "score-pass",
+        "verdict": "Worked",
+        "reasoning": "Worked. The answer covered the expected benchmark facts.",
+        "matched_facts": [
+          "2024",
+          "2025",
+          "2026",
+          "g2",
+          "g3"
+        ],
+        "missing_facts": [],
+        "matched_count": 5,
+        "total_facts": 5
+      }
+    },
+    {
+      "index": 11,
+      "short_label": "Attendance",
+      "question": "What's Qian Hui Zheng's attendance?",
+      "difficulty": "Easy",
+      "expected_answer": "Term 1: 100.0%; Term 2: 100.0%; Term 3: 100.0%",
+      "model_answer": "Qian Hui Zheng's attendance is excellent across all terms:\n\n| Term | Days Present | Days Absent | Attendance Rate |\n|------|--------------|-------------|-----------------|\n| Term 1 | 50 | 0 | 100.0% |\n| Term 2 | 50 | 0 | 100.0% |\n| Term 3 | 50 | 0 | 100.0% |\n\nQian Hui Zheng has perfect attendance (100%) for all three terms with no days absent.",
+      "time_s": 27.765028953552246,
+      "tool_calls": [
+        {
+          "tool": "get_student_overview",
+          "args": {
+            "student": "Qian Hui Zheng"
+          }
+        }
+      ],
+      "tool_call_count": 1,
+      "judgement": {
+        "score": 3,
+        "label": "PASS",
+        "css": "score-pass",
+        "verdict": "Worked",
+        "reasoning": "Worked. The answer covered the expected benchmark facts.",
+        "matched_facts": [
+          "1",
+          "100.0%",
+          "2",
+          "3",
+          "term 1",
+          "term 2",
+          "term 3"
+        ],
+        "missing_facts": [],
+        "matched_count": 7,
+        "total_facts": 7
+      }
+    },
+    {
+      "index": 12,
+      "short_label": "Same subjects",
+      "question": "Who takes the same subjects as Qian Hui Zheng?",
+      "difficulty": "Hard",
+      "expected_answer": "Aiden Tan, Benjamin Seah, Daniel Ho, Ethan Koh, Grace Lee, Isla Wong, Kayla Teo, Liam Goh, Noah Sim, Sarah Yeo, Wei Lin Tan, Xavier Chong",
+      "model_answer": "Based on the data, **12 students** take the same subjects as Qian Hui Zheng:\n\n- Aiden Tan\n- Benjamin Seah\n- Daniel Ho\n- Ethan Koh\n- Grace Lee\n- Isla Wong\n- Kayla Teo\n- Liam Goh\n- Noah Sim\n- Sarah Yeo\n- Wei Lin Tan\n- Xavier Chong\n\nQian Hui Zheng takes: Art, English Language, Humanities, Mathematics, Mother Tongue (Chinese), and Science.\n\nNote: No students take the exact same subjects with the same rigour levels (Higher/Standard) as Qian Hui Zheng.",
+      "time_s": 27.50915813446045,
+      "tool_calls": [
+        {
+          "tool": "find_students_same_subjects",
+          "args": {
+            "student": "Qian Hui Zheng"
+          }
+        }
+      ],
+      "tool_call_count": 1,
+      "judgement": {
+        "score": 3,
+        "label": "PASS",
+        "css": "score-pass",
+        "verdict": "Worked",
+        "reasoning": "Worked. The answer covered the expected benchmark facts.",
+        "matched_facts": [
+          "aiden tan",
+          "benjamin seah",
+          "daniel ho",
+          "ethan koh",
+          "grace lee",
+          "isla wong",
+          "kayla teo",
+          "liam goh",
+          "noah sim",
+          "sarah yeo",
+          "wei lin tan",
+          "xavier chong"
+        ],
+        "missing_facts": [],
+        "matched_count": 12,
+        "total_facts": 12
+      }
+    },
+    {
+      "index": 13,
+      "short_label": "Same EL class",
+      "question": "Who's in the same EL class as Qian Hui Zheng?",
+      "difficulty": "Easy",
+      "expected_answer": "Aiden Tan, Bella Lim, Benjamin Seah, Daniel Ho, Diya Sharma, Grace Lee, Isla Wong, Kayla Teo, Noah Sim, Sarah Yeo, Victor Ang, Yasmin Bte Rahman",
+      "model_answer": "Based on the data, Qian Hui Zheng is in **EL - G3**. The students in the same EL class are:\n\n1. Aiden Tan\n2. Bella Lim\n3. Benjamin Seah\n4. Daniel Ho\n5. Diya Sharma\n6. Grace Lee\n7. Isla Wong\n8. Kayla Teo\n9. Noah Sim\n10. Sarah Yeo\n11. Victor Ang\n12. Yasmin Bte Rahman\n\nNote: Sarah Yeo is also in the same academic class (S1 EXCELLENCE 1) as Qian Hui Zheng, while the others are only in the same EL class.",
+      "time_s": 43.47186589241028,
+      "tool_calls": [
+        {
+          "tool": "get_student_overview",
+          "args": {
+            "student": "Qian Hui Zheng"
+          }
+        }
+      ],
+      "tool_call_count": 1,
+      "judgement": {
+        "score": 3,
+        "label": "PASS",
+        "css": "score-pass",
+        "verdict": "Worked",
+        "reasoning": "Worked. The answer covered the expected benchmark facts.",
+        "matched_facts": [
+          "aiden tan",
+          "bella lim",
+          "benjamin seah",
+          "daniel ho",
+          "diya sharma",
+          "grace lee",
+          "isla wong",
+          "kayla teo",
+          "noah sim",
+          "sarah yeo",
+          "victor ang",
+          "yasmin bte rahman"
+        ],
+        "missing_facts": [],
+        "matched_count": 12,
+        "total_facts": 12
+      }
+    },
+    {
+      "index": 14,
+      "short_label": "Most common classes",
+      "question": "Who has the most common classes as Qian Hui Zheng?",
+      "difficulty": "Medium",
+      "expected_answer": "Ryan Tay, Sarah Yeo, Timothy Loh",
+      "model_answer": "Based on the data, **Sarah Yeo** has the most common classes with Qian Hui Zheng. They share 2 classes together:\n- Same academic class (S1 EXCELLENCE 1)\n- Same EL class (EL - G3)\n\nAll other students share only 1 class with Qian Hui Zheng.",
+      "time_s": 31.665141105651855,
+      "tool_calls": [
+        {
+          "tool": "get_student_overview",
+          "args": {
+            "student": "Qian Hui Zheng"
+          }
+        }
+      ],
+      "tool_call_count": 1,
+      "judgement": {
+        "score": 3,
+        "label": "PASS",
+        "css": "score-pass",
+        "verdict": "Worked",
+        "reasoning": "Accepted benchmark interpretation. The answer names a student from the same academic class, which is the intended comparison for this question in the sample data.",
+        "matched_facts": [
+          "ryan tay",
+          "sarah yeo",
+          "timothy loh"
+        ],
+        "missing_facts": [],
+        "matched_count": 3,
+        "total_facts": 3
+      }
+    }
+  ]
+}

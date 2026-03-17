@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Benchmark Results</title>
+<style>
+  :root {
+    --bg: #f4efe7;
+    --paper: #fffdf8;
+    --frame-bg: rgba(255, 253, 248, 0.92);
+    --hover-bg: #fff7ef;
+    --bg-glow-1: rgba(180, 77, 22, 0.08);
+    --bg-glow-2: rgba(31, 93, 99, 0.09);
+    --ink: #1e1812;
+    --muted: #6e655c;
+    --line: #dbcab5;
+    --accent: #b44d16;
+    --accent-dark: #7d2e0d;
+    --accent-soft: #f7dfcf;
+    --teal: #1f5d63;
+    --teal-soft: #dceef0;
+    --success: #2f7d32;
+    --success-soft: #e1f2e2;
+    --warning: #9a6700;
+    --warning-soft: #f5ead2;
+    --danger: #9b2c2c;
+    --danger-soft: #f8dedd;
+    --shadow: 0 18px 48px rgba(63, 38, 15, 0.10);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: "Avenir Next", "Segoe UI", sans-serif;
+    color: var(--ink);
+    background:
+      radial-gradient(circle at top right, var(--bg-glow-1), transparent 24%),
+      radial-gradient(circle at bottom left, var(--bg-glow-2), transparent 28%),
+      var(--bg);
+  }
+  a {
+    color: inherit;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 0.18em;
+    text-decoration-color: color-mix(in srgb, var(--accent) 55%, transparent);
+  }
+  a:hover { color: var(--accent); }
+  .wrap {
+    width: min(1180px, calc(100% - 32px));
+    margin: 32px auto 48px;
+  }
+  .hero,
+  .question-card {
+    border: 1px solid var(--line);
+    border-radius: 28px;
+    background: var(--frame-bg);
+    box-shadow: var(--shadow);
+    backdrop-filter: blur(8px);
+  }
+  .hero {
+    padding: 32px;
+    margin-bottom: 24px;
+  }
+  .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 18px;
+    padding: 7px 12px;
+    border-radius: 999px;
+    background: var(--teal-soft);
+    color: var(--teal);
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+  .eyebrow::before {
+    content: "";
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--teal);
+  }
+  h1 {
+    margin: 0;
+    font-size: clamp(40px, 6vw, 64px);
+    line-height: 0.98;
+    letter-spacing: -0.04em;
+  }
+  h2 {
+    margin: 0;
+    font-size: 30px;
+    letter-spacing: -0.03em;
+  }
+  .lede {
+    margin-top: 18px;
+    max-width: 960px;
+    font-size: 20px;
+    line-height: 1.5;
+    color: var(--muted);
+  }
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 24px;
+  }
+  .action-link {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 11px 16px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: var(--paper);
+    text-decoration: none;
+    font-weight: 700;
+  }
+  .overview {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 18px;
+    margin-top: 24px;
+  }
+  .overview-card {
+    padding: 20px;
+    border: 1px solid var(--line);
+    border-radius: 22px;
+    background: var(--paper);
+  }
+  .overview-card .label {
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.10em;
+    text-transform: uppercase;
+  }
+  .overview-card .value {
+    margin-top: 8px;
+    font-size: 34px;
+    line-height: 1;
+    font-weight: 800;
+    letter-spacing: -0.05em;
+  }
+  .overview-card .subvalue {
+    margin-top: 10px;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+  .results {
+    display: grid;
+    gap: 18px;
+  }
+  .question-card {
+    padding: 28px;
+  }
+  .question-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+  }
+  .question-index {
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.10em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+  .question-text {
+    margin: 12px 0 0;
+    color: var(--muted);
+    font-size: 17px;
+    line-height: 1.6;
+  }
+  .question-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .badge {
+    display: inline-block;
+    padding: 5px 8px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .badge-easy { background: var(--success-soft); color: var(--success); }
+  .badge-medium { background: var(--warning-soft); color: var(--warning); }
+  .badge-hard { background: var(--danger-soft); color: var(--danger); }
+  .score-pass { background: var(--success-soft); color: var(--success); }
+  .score-partial { background: var(--warning-soft); color: var(--warning); }
+  .score-weak, .score-miss, .score-fail { background: var(--danger-soft); color: var(--danger); }
+  .meta-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-top: 14px;
+    color: var(--muted);
+    font-size: 14px;
+  }
+  .compare-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-top: 22px;
+  }
+  .answer-panel,
+  .assessment,
+  .tool-panel {
+    padding: 18px;
+    border: 1px solid var(--line);
+    border-radius: 22px;
+    background: var(--paper);
+  }
+  .answer-panel h3,
+  .assessment h3 {
+    margin: 0 0 10px;
+    font-size: 18px;
+    letter-spacing: -0.02em;
+  }
+  pre {
+    margin: 0;
+    white-space: pre-wrap;
+    font: inherit;
+    line-height: 1.7;
+    color: var(--muted);
+  }
+  .assessment {
+    margin-top: 16px;
+    border-bottom: 2px solid var(--accent);
+  }
+  .assessment p {
+    margin: 0;
+    color: var(--muted);
+    line-height: 1.7;
+  }
+  .assessment p + p {
+    margin-top: 10px;
+  }
+  details {
+    margin-top: 16px;
+  }
+  summary {
+    cursor: pointer;
+    font-weight: 700;
+    color: var(--teal);
+  }
+  .tool-calls {
+    margin-top: 12px;
+    display: grid;
+    gap: 10px;
+  }
+  .tool-call {
+    padding: 14px;
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    background: var(--paper);
+  }
+  .tool-call code {
+    display: block;
+    white-space: pre-wrap;
+    word-break: break-word;
+    font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .tool-note {
+    margin-top: 8px;
+    color: var(--danger);
+    font-size: 13px;
+    font-weight: 700;
+  }
+  @media (max-width: 980px) {
+    .overview,
+    .compare-grid {
+      grid-template-columns: 1fr;
+    }
+    .question-top {
+      flex-direction: column;
+    }
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <section class="hero">
+      <div class="eyebrow">Detailed benchmark results</div>
+      <h1>Question-by-question evidence</h1>
+      <p class="lede">
+        This page shows the actual prompt, expected answer, model answer, tool usage, timing, and assessment for the latest run of the school benchmark.
+      </p>
+      <div class="actions">
+        <a class="action-link" href="./benchmark_report.html">Back to summary</a>
+        <a class="action-link" href="./benchmark_results.json">Open raw results JSON</a>
+        <a class="action-link" href="https://github.com/tinkertanker/local-llm-schdata-testing/blob/main/benchmark.py" target="_blank" rel="noreferrer">View benchmark harness on GitHub</a>
+      </div>
+      <div class="overview">
+        <article class="overview-card">
+          <div class="label">Worked</div>
+          <div class="value">14/14</div>
+          <div class="subvalue">Questions judged as worked in this rerun.</div>
+        </article>
+        <article class="overview-card">
+          <div class="label">Average time</div>
+          <div class="value">55.7s</div>
+          <div class="subvalue">Optimised tools mode<br>15 total tool calls</div>
+        </article>
+        <article class="overview-card">
+          <div class="label">Generated</div>
+          <div class="value">2026-03-17</div>
+          <div class="subvalue">2026-03-17 21:57</div>
+        </article>
+        <article class="overview-card">
+          <div class="label">Model tested</div>
+          <div class="value">qwen3.5-35b-a3b</div>
+          <div class="subvalue">mlx-community/Qwen3.5-35B-A3B-4bit mlx</div>
+        </article>
+      </div>
+    </section>
+
+    <section class="results">
+      
+        <article class="question-card">
+          <div class="question-top">
+            <div>
+              <div class="question-index">Question 1</div>
+              <h2>Class count</h2>
+              <p class="question-text">How many classes are there?</p>
+            </div>
+            <div class="question-badges">
+              <span class="badge badge-easy">Easy</span>
+              <span class="badge score-pass">Worked</span>
+            </div>
+          </div>
+          <div class="meta-row">
+            <span><strong>Time:</strong> 43.2s</span>
+            <span><strong>Tool calls:</strong> 1</span>
+          </div>
+          <div class="compare-grid">
+            <div class="answer-panel">
+              <h3>Expected answer</h3>
+              <pre>8 classes: S1 EXCELLENCE 1, S1 EXCELLENCE 2, S1 HONOUR 1, S1 HONOUR 2, S1 RESPECT 1, S1 RESPECT 2, S1 WISDOM 1, S1 WISDOM 2</pre>
+            </div>
+            <div class="answer-panel">
+              <h3>Model answer</h3>
+              <pre>There are **8 classes** in total:<br><br>1. S1 HONOUR 1<br>2. S1 HONOUR 2<br>3. S1 RESPECT 1<br>4. S1 RESPECT 2<br>5. S1 EXCELLENCE 1<br>6. S1 EXCELLENCE 2<br>7. S1 WISDOM 1<br>8. S1 WISDOM 2</pre>
+            </div>
+          </div>
+          <div class="assessment">
+            <h3>Assessment</h3>
+            <p>Worked. The answer covered the expected benchmark facts.</p>
+            <p><strong>Matched facts:</strong> 1, 2, 8, 8 classes, s1 excellence 1, s1 excellence 2, s1 honour 1, s1 honour 2, and 4 more</p>
+            <p><strong>Missing facts:</strong> None</p>
+          </div>
+          <details><summary>1 tool call(s)</summary><div class="tool-calls"><div class='tool-call'><code>distinct({&quot;file&quot;: &quot;class_info.csv&quot;, &quot;column&quot;: &quot;CLASS&quot;})</code></div></div></details>
+        </article>
+        
+        <article class="question-card">
+          <div class="question-top">
+            <div>
+              <div class="question-index">Question 2</div>
+              <h2>Students per class</h2>
+              <p class="question-text">How many students are there in each class?</p>
+            </div>
+            <div class="question-badges">
+              <span class="badge badge-easy">Easy</span>
+              <span class="badge score-pass">Worked</span>
+            </div>
+          </div>
+          <div class="meta-row">
+            <span><strong>Time:</strong> 101.7s</span>
+            <span><strong>Tool calls:</strong> 2</span>
+          </div>
+          <div class="compare-grid">
+            <div class="answer-panel">
+              <h3>Expected answer</h3>
+              <pre>S1 EXCELLENCE 1: 4; S1 EXCELLENCE 2: 4; S1 HONOUR 1: 4; S1 HONOUR 2: 4; S1 RESPECT 1: 4; S1 RESPECT 2: 4; S1 WISDOM 1: 4; S1 WISDOM 2: 4</pre>
+            </div>
+            <div class="answer-panel">
+              <h3>Model answer</h3>
+              <pre>There are **4 students** in each of the 8 classes:<br><br>- S1 EXCELLENCE 1: 4 students<br>- S1 EXCELLENCE 2: 4 students<br>- S1 HONOUR 1: 4 students<br>- S1 HONOUR 2: 4 students<br>- S1 RESPECT 1: 4 students<br>- S1 RESPECT 2: 4 students<br>- S1 WISDOM 1: 4 students<br>- S1 WISDOM 2: 4 students<br><br>Total: 32 students across all classes.</pre>
+            </div>
+          </div>
+          <div class="assessment">
+            <h3>Assessment</h3>
+            <p>Worked. The answer covered the expected benchmark facts.</p>
+            <p><strong>Matched facts:</strong> 1, 2, 4, s1 excellence 1, s1 excellence 2, s1 honour 1, s1 honour 2, s1 respect 1, and 3 more</p>
+            <p><strong>Missing facts:</strong> None</p>
+          </div>
+          <details><summary>2 tool call(s)</summary><div class="tool-calls"><div class='tool-call'><code>summarise({&quot;file&quot;: &quot;class_info.csv&quot;, &quot;group_by&quot;: &quot;CLASS&quot;, &quot;metric&quot;: &quot;count&quot;})</code></div><div class='tool-call'><code>summarise({&quot;file&quot;: &quot;students.csv&quot;, &quot;group_by&quot;: &quot;ACADEMIC CLASS&quot;, &quot;metric&quot;: &quot;count&quot;})</code></div></div></details>
+        </article>
+        
+        <article class="question-card">
+          <div class="question-top">
+            <div>
+              <div class="question-index">Question 3</div>
+              <h2>Student subjects</h2>
+              <p class="question-text">What subjects does Qian Hui Zheng take?</p>
+            </div>
+            <div class="question-badges">
+              <span class="badge badge-easy">Easy</span>
+              <span class="badge score-pass">Worked</span>
+            </div>
+          </div>
+          <div class="meta-row">
+            <span><strong>Time:</strong> 76.0s</span>
+            <span><strong>Tool calls:</strong> 1</span>
+          </div>
+          <div class="compare-grid">
+            <div class="answer-panel">
+              <h3>Expected answer</h3>
+              <pre>English Language, Mathematics, Science, Mother Tongue (Chinese), Humanities, Art</pre>
+            </div>
+            <div class="answer-panel">
+              <h3>Model answer</h3>
+              <pre>Qian Hui Zheng takes the following subjects:<br><br>1. **Art** (Standard rigour) - Teacher: Brain Brandt<br>2. **English Language** (Higher rigour) - Teacher: Gwendolyn Cabrera<br>3. **Humanities** (Standard rigour) - Teacher: Gwendolyn Cabrera<br>4. **Mathematics** (Higher rigour) - Teacher: Neal Mullen<br>5. **Mother Tongue (Chinese)** (Higher rigour) - Teacher: Sasha Conner<br>6. **Science** (Higher rigour) - Teacher: Leif Guerrero</pre>
+            </div>
+          </div>
+          <div class="assessment">
+            <h3>Assessment</h3>
+            <p>Worked. The answer covered the expected benchmark facts.</p>
+            <p><strong>Matched facts:</strong> art, english language, humanities, mathematics, mother tongue (chinese), science</p>
+            <p><strong>Missing facts:</strong> None</p>
+          </div>
+          <details><summary>1 tool call(s)</summary><div class="tool-calls"><div class='tool-call'><code>get_student_overview({&quot;student&quot;: &quot;Qian Hui Zheng&quot;})</code></div></div></details>
+        </article>
+        
+        <article class="question-card">
+          <div class="question-top">
+            <div>
+              <div class="question-index">Question 4</div>
+              <h2>Subject rigour</h2>
+              <p class="question-text">What's the rigour of each subject that Qian Hui Zheng takes?</p>
+            </div>
+            <div class="question-badges">
+              <span class="badge badge-easy">Easy</span>
+              <span class="badge score-pass">Worked</span>
+            </div>
+          </div>
+          <div class="meta-row">
+            <span><strong>Time:</strong> 99.5s</span>
+            <span><strong>Tool calls:</strong> 1</span>
+          </div>
+          <div class="compare-grid">
+            <div class="answer-panel">
+              <h3>Expected answer</h3>
+              <pre>English Language: Higher; Mathematics: Higher; Science: Higher; Mother Tongue (Chinese): Higher; Humanities: Standard; Art: Standard</pre>
+            </div>
+            <div class="answer-panel">
+              <h3>Model answer</h3>
+              <pre>Based on the student overview for Qian Hui Zheng, here are the rigour levels for each subject:<br><br>| Subject | Rigour Level |<br>|---------|--------------|<br>| Art | Standard |<br>| English Language | Higher |<br>| Humanities | Standard |<br>| Mathematics | Higher |<br>| Mother Tongue (Chinese) | Higher |<br>| Science | Higher |<br><br>Qian Hui Zheng takes 6 subjects in total, with 4 at the **Higher** rigour level and 2 at the **Standard** rigour level.</pre>
+            </div>
+          </div>
+          <div class="assessment">
+            <h3>Assessment</h3>
+            <p>Worked. The answer covered the expected benchmark facts.</p>
+            <p><strong>Matched facts:</strong> art, chinese, english language, higher, humanities, mathematics, mother tongue, science, and 1 more</p>
+            <p><strong>Missing facts:</strong> None</p>
+          </div>
+          <details><summary>1 tool call(s)</summary><div class="tool-calls"><div class='tool-call'><code>get_student_overview({&quot;student&quot;: &quot;Qian Hui Zheng&quot;})</code></div></div></details>
+        </article>
+        
+        <article class="question-card">
+          <div class="question-top">
+            <div>
+              <div class="question-index">Question 5</div>
+              <h2>Class teacher</h2>
+              <p class="question-text">Who teaches S1 HONOUR 1?</p>
+            </div>
+            <div class="question-badges">
+              <span class="badge badge-easy">Easy</span>
+              <span class="badge score-pass">Worked</span>
+            </div>
+          </div>
+          <div class="meta-row">
+            <span><strong>Time:</strong> 64.8s</span>
+            <span><strong>Tool calls:</strong> 1</span>
+          </div>
+          <div class="compare-grid">
+            <div class="answer-panel">
+              <h3>Expected answer</h3>
+              <pre>NEAL MULLEN</pre>
+            </div>
+            <div class="answer-panel">
+              <h3>Model answer</h3>
+              <pre>NEAL MULLEN is the form teacher for S1 HONOUR 1.</pre>
+            </div>
+          </div>
+          <div class="assessment">
+            <h3>Assessment</h3>
+            <p>Worked. The answer covered the expected benchmark facts.</p>
+            <p><strong>Matched facts:</strong> neal mullen</p>
+            <p><strong>Missing facts:</strong> None</p>
+          </div>
+          <details><summary>1 tool call(s)</summary><div class="tool-calls"><div class='tool-call'><code>query({&quot;file&quot;: &quot;class_info.csv&quot;, &quot;filters&quot;: [{&quot;column&quot;: &quot;CLASS&quot;, &quot;op&quot;: &quot;=&quot;, &quot;value&quot;: &quot;S1 HONOUR 1&quot;}], &quot;columns&quot;: [&quot;CLASS&quot;, &quot;FORM TEACHER&quot;]})</code></div></div></details>
+        </article>
+        
+        <article class="question-card">
+          <div class="question-top">
+            <div>
+              <div class="question-index">Question 6</div>
+              <h2>Student's teachers</h2>
+              <p class="question-text">Who teaches Qian Hui Zheng?</p>
+            </div>
+            <div class="question-badges">
+              <span class="badge badge-hard">Hard</span>
+              <span class="badge score-pass">Worked</span>
+            </div>
+          </div>
+          <div class="meta-row">
+            <span><strong>Time:</strong> 68.9s</span>
+            <span><strong>Tool calls:</strong> 1</span>
+          </div>
+          <div class="compare-grid">
+            <div class="answer-panel">
+              <h3>Expected answer</h3>
+              <pre>English Language (Higher): GWENDOLYN CABRERA; Mathematics (Higher): NEAL MULLEN; Science (Higher): LEIF GUERRERO; Mother Tongue (Chinese) (Higher): SASHA CONNER; Humanities (Standard): GWENDOLYN CABRERA; Art (Standard): BRAIN BRANDT</pre>
+            </div>
+            <div class="answer-panel">
+              <h3>Model answer</h3>
+              <pre>Qian Hui Zheng is taught by the following teachers:<br><br>| Subject | Rigour | Teacher |<br>|---------|--------|---------|<br>| Art | Standard | BRAIN BRANDT |<br>| English Language | Higher | GWENDOLYN CABRERA |<br>| Humanities | Standard | GWENDOLYN CABRERA |<br>| Mathematics | Higher | NEAL MULLEN |<br>| Mother Tongue (Chinese) | Higher | SASHA CONNER |<br>| Science | Higher | LEIF GUERRERO |<br><br>**Unique teachers:** BRAIN BRANDT, GWENDOLYN CABRERA, LEIF GUERRERO, NEAL MULLEN, SASHA CONNER</pre>
+            </div>
+          </div>
+          <div class="assessment">
+            <h3>Assessment</h3>
+            <p>Worked. The answer covered the expected benchmark facts.</p>
+            <p><strong>Matched facts:</strong> art, brain brandt, chinese, english language, gwendolyn cabrera, higher, humanities, leif guerrero, and 7 more</p>
+            <p><strong>Missing facts:</strong> None</p>
+          </div>
+          <details><summary>1 tool call(s)</summary><div class="tool-calls"><div class='tool-call'><code>get_student_teachers({&quot;student&quot;: &quot;Qian Hui Zheng&quot;})</code></div></div></details>
+        </article>
+        
+        <article class="question-card">
+          <div class="question-top">
+            <div>
+              <div class="question-index">Question 7</div>
+              <h2>Level teachers</h2>
+              <p class="question-text">Who teaches S1 level?</p>
+            </div>
+            <div class="question-badges">
+              <span class="badge badge-easy">Easy</span>
+              <span class="badge score-pass">Worked</span>
+            </div>
+          </div>
+          <div class="meta-row">
+            <span><strong>Time:</strong> 57.4s</span>
+            <span><strong>Tool calls:</strong> 1</span>
+          </div>
+          <div class="compare-grid">
+            <div class="answer-panel">
+              <h3>Expected answer</h3>
+              <pre>BRAIN BRANDT, GWENDOLYN CABRERA, JEFFEREY OLSON, LEIF GUERRERO, NEAL MULLEN, SASHA CONNER</pre>
+            </div>
+            <div class="answer-panel">
+              <h3>Model answer</h3>
+              <pre>The S1 level is taught by 6 form teachers:<br><br>- **BRAIN BRANDT** (S1 WISDOM 2)<br>- **GWENDOLYN CABRERA** (S1 RESPECT 1)<br>- **JEFFEREY OLSON** (S1 RESPECT 2)<br>- **LEIF GUERRERO** (S1 EXCELLENCE 1, S1 EXCELLENCE 2)<br>- **NEAL MULLEN** (S1 HONOUR 1, S1 HONOUR 2)<br>- **SASHA CONNER** (S1 WISDOM 1)<br><br>These teachers are responsible for the 8 S1 classes across the Excellence, Honour, Respect, and Wisdom streams.</pre>
+            </div>
+          </div>
+          <div class="assessment">
+            <h3>Assessment</h3>
+            <p>Worked. The answer covered the expected benchmark facts.</p>
+            <p><strong>Matched facts:</strong> brain brandt, gwendolyn cabrera, jefferey olson, leif guerrero, neal mullen, sasha conner</p>
+            <p><strong>Missing facts:</strong> None</p>
+          </div>
+          <details><summary>1 tool call(s)</summary><div class="tool-calls"><div class='tool-call'><code>get_level_teachers({&quot;level&quot;: &quot;S1&quot;})</code></div></div></details>
+        </article>
+        
+        <article class="question-card">
+          <div class="question-top">
+            <div>
+              <div class="question-index">Question 8</div>
+              <h2>Student location</h2>
+              <p class="question-text">Where is Qian Hui Zheng now? Assume it's Monday Period 1.</p>
+            </div>
+            <div class="question-badges">
+              <span class="badge badge-medium">Medium</span>
+              <span class="badge score-pass">Worked</span>
+            </div>
+          </div>
+          <div class="meta-row">
+            <span><strong>Time:</strong> 57.5s</span>
+            <span><strong>Tool calls:</strong> 1</span>
+          </div>
+          <div class="compare-grid">
+            <div class="answer-panel">
+              <h3>Expected answer</h3>
+              <pre>Subject: English Language; Room: Room 301; Day: Monday; Period: 1</pre>
+            </div>
+            <div class="answer-panel">
+              <h3>Model answer</h3>
+              <pre>Qian Hui Zheng is currently in **Room 301** for English Language class on Monday Period 1.</pre>
+            </div>
+          </div>
+          <div class="assessment">
+            <h3>Assessment</h3>
+            <p>Worked overall. It covered 8 of 9 benchmark facts. Missing details were minor: subject.</p>
+            <p><strong>Matched facts:</strong> 1, 301, day, english language, monday, period, room, room 301</p>
+            <p><strong>Missing facts:</strong> subject</p>
+          </div>
+          <details><summary>1 tool call(s)</summary><div class="tool-calls"><div class='tool-call'><code>get_student_location({&quot;student&quot;: &quot;Qian Hui Zheng&quot;, &quot;day&quot;: &quot;Monday&quot;, &quot;period&quot;: 1})</code></div></div></details>
+        </article>
+        
+        <article class="question-card">
+          <div class="question-top">
+            <div>
+              <div class="question-index">Question 9</div>
+              <h2>Student profile</h2>
+              <p class="question-text">Tell me about Qian Hui Zheng.</p>
+            </div>
+            <div class="question-badges">
+              <span class="badge badge-easy">Easy</span>
+              <span class="badge score-pass">Worked</span>
+            </div>
+          </div>
+          <div class="meta-row">
+            <span><strong>Time:</strong> 53.2s</span>
+            <span><strong>Tool calls:</strong> 1</span>
+          </div>
+          <div class="compare-grid">
+            <div class="answer-panel">
+              <h3>Expected answer</h3>
+              <pre>Name: Qian Hui Zheng, Class: S1 EXCELLENCE 1, EL: EL - G3</pre>
+            </div>
+            <div class="answer-panel">
+              <h3>Model answer</h3>
+              <pre>Here's a summary of Qian Hui Zheng:<br><br>**Basic Profile:**<br>- **Class:** S1 EXCELLENCE 1<br>- **EL Class:** EL - G3<br>- **Form Teacher:** LEIF GUERRERO<br><br>**Subjects &amp; Rigour Levels:**<br>| Subject | Rigour | Teacher |<br>|---------|--------|---------|<br>| Art | Standard | BRAIN BRANDT |<br>| English Language | Higher | GWENDOLYN CABRERA |<br>| Humanities | Standard | GWENDOLYN CABRERA |<br>| Mathematics | Higher | NEAL MULLEN |<br>| Mother Tongue (Chinese) | Higher | SASHA CONNER |<br>| Science | Higher | LEIF GUERRERO |<br><br>**Attendance Record:**<br>- Term 1: 100.0% (50 days present, 0 absent)<br>- Term 2: 100.0% (50 days present, 0 absent)<br>- Term 3: 100.0% (50 days present, 0 absent)<br><br>**EL History:**<br>- 2024: G2 → 2025: G3 → 2026: G3<br><br>**Classmates:**<br>- **Same Academic Class (S1 EXCELLENCE 1):** Ryan Tay, Sarah Yeo, Timothy Loh<br>- **Same EL Class (EL - G3):** Aiden Tan, Bella Lim, Benjamin Seah, Daniel Ho, Diya Sharma, Grace Lee, Isla Wong, Kayla Teo, Noah Sim, Sarah Yeo, Victor Ang, Yasmin Bte Rahman<br>- **Most Shared Classmate:** Sarah Yeo (shares both academic and EL class)</pre>
+            </div>
+          </div>
+          <div class="assessment">
+            <h3>Assessment</h3>
+            <p>Worked overall. It covered 6 of 7 benchmark facts. Missing details were minor: name.</p>
+            <p><strong>Matched facts:</strong> 1, class, el, el - g3, qian hui zheng, s1 excellence 1</p>
+            <p><strong>Missing facts:</strong> name</p>
+          </div>
+          <details><summary>1 tool call(s)</summary><div class="tool-calls"><div class='tool-call'><code>get_student_overview({&quot;student&quot;: &quot;Qian Hui Zheng&quot;})</code></div></div></details>
+        </article>
+        
+        <article class="question-card">
+          <div class="question-top">
+            <div>
+              <div class="question-index">Question 10</div>
+              <h2>EL history</h2>
+              <p class="question-text">What are the EL grades for Qian Hui Zheng for the past 3 years?</p>
+            </div>
+            <div class="question-badges">
+              <span class="badge badge-easy">Easy</span>
+              <span class="badge score-pass">Worked</span>
+            </div>
+          </div>
+          <div class="meta-row">
+            <span><strong>Time:</strong> 26.5s</span>
+            <span><strong>Tool calls:</strong> 1</span>
+          </div>
+          <div class="compare-grid">
+            <div class="answer-panel">
+              <h3>Expected answer</h3>
+              <pre>2024: G2; 2025: G3; 2026: G3</pre>
+            </div>
+            <div class="answer-panel">
+              <h3>Model answer</h3>
+              <pre>Qian Hui Zheng's EL grades for the past 3 years are:<br><br>- **2024**: G2<br>- **2025**: G3<br>- **2026**: G3</pre>
+            </div>
+          </div>
+          <div class="assessment">
+            <h3>Assessment</h3>
+            <p>Worked. The answer covered the expected benchmark facts.</p>
+            <p><strong>Matched facts:</strong> 2024, 2025, 2026, g2, g3</p>
+            <p><strong>Missing facts:</strong> None</p>
+          </div>
+          <details><summary>1 tool call(s)</summary><div class="tool-calls"><div class='tool-call'><code>get_student_overview({&quot;student&quot;: &quot;Qian Hui Zheng&quot;})</code></div></div></details>
+        </article>
+        
+        <article class="question-card">
+          <div class="question-top">
+            <div>
+              <div class="question-index">Question 11</div>
+              <h2>Attendance</h2>
+              <p class="question-text">What's Qian Hui Zheng's attendance?</p>
+            </div>
+            <div class="question-badges">
+              <span class="badge badge-easy">Easy</span>
+              <span class="badge score-pass">Worked</span>
+            </div>
+          </div>
+          <div class="meta-row">
+            <span><strong>Time:</strong> 27.8s</span>
+            <span><strong>Tool calls:</strong> 1</span>
+          </div>
+          <div class="compare-grid">
+            <div class="answer-panel">
+              <h3>Expected answer</h3>
+              <pre>Term 1: 100.0%; Term 2: 100.0%; Term 3: 100.0%</pre>
+            </div>
+            <div class="answer-panel">
+              <h3>Model answer</h3>
+              <pre>Qian Hui Zheng's attendance is excellent across all terms:<br><br>| Term | Days Present | Days Absent | Attendance Rate |<br>|------|--------------|-------------|-----------------|<br>| Term 1 | 50 | 0 | 100.0% |<br>| Term 2 | 50 | 0 | 100.0% |<br>| Term 3 | 50 | 0 | 100.0% |<br><br>Qian Hui Zheng has perfect attendance (100%) for all three terms with no days absent.</pre>
+            </div>
+          </div>
+          <div class="assessment">
+            <h3>Assessment</h3>
+            <p>Worked. The answer covered the expected benchmark facts.</p>
+            <p><strong>Matched facts:</strong> 1, 100.0%, 2, 3, term 1, term 2, term 3</p>
+            <p><strong>Missing facts:</strong> None</p>
+          </div>
+          <details><summary>1 tool call(s)</summary><div class="tool-calls"><div class='tool-call'><code>get_student_overview({&quot;student&quot;: &quot;Qian Hui Zheng&quot;})</code></div></div></details>
+        </article>
+        
+        <article class="question-card">
+          <div class="question-top">
+            <div>
+              <div class="question-index">Question 12</div>
+              <h2>Same subjects</h2>
+              <p class="question-text">Who takes the same subjects as Qian Hui Zheng?</p>
+            </div>
+            <div class="question-badges">
+              <span class="badge badge-hard">Hard</span>
+              <span class="badge score-pass">Worked</span>
+            </div>
+          </div>
+          <div class="meta-row">
+            <span><strong>Time:</strong> 27.5s</span>
+            <span><strong>Tool calls:</strong> 1</span>
+          </div>
+          <div class="compare-grid">
+            <div class="answer-panel">
+              <h3>Expected answer</h3>
+              <pre>Aiden Tan, Benjamin Seah, Daniel Ho, Ethan Koh, Grace Lee, Isla Wong, Kayla Teo, Liam Goh, Noah Sim, Sarah Yeo, Wei Lin Tan, Xavier Chong</pre>
+            </div>
+            <div class="answer-panel">
+              <h3>Model answer</h3>
+              <pre>Based on the data, **12 students** take the same subjects as Qian Hui Zheng:<br><br>- Aiden Tan<br>- Benjamin Seah<br>- Daniel Ho<br>- Ethan Koh<br>- Grace Lee<br>- Isla Wong<br>- Kayla Teo<br>- Liam Goh<br>- Noah Sim<br>- Sarah Yeo<br>- Wei Lin Tan<br>- Xavier Chong<br><br>Qian Hui Zheng takes: Art, English Language, Humanities, Mathematics, Mother Tongue (Chinese), and Science.<br><br>Note: No students take the exact same subjects with the same rigour levels (Higher/Standard) as Qian Hui Zheng.</pre>
+            </div>
+          </div>
+          <div class="assessment">
+            <h3>Assessment</h3>
+            <p>Worked. The answer covered the expected benchmark facts.</p>
+            <p><strong>Matched facts:</strong> aiden tan, benjamin seah, daniel ho, ethan koh, grace lee, isla wong, kayla teo, liam goh, and 4 more</p>
+            <p><strong>Missing facts:</strong> None</p>
+          </div>
+          <details><summary>1 tool call(s)</summary><div class="tool-calls"><div class='tool-call'><code>find_students_same_subjects({&quot;student&quot;: &quot;Qian Hui Zheng&quot;})</code></div></div></details>
+        </article>
+        
+        <article class="question-card">
+          <div class="question-top">
+            <div>
+              <div class="question-index">Question 13</div>
+              <h2>Same EL class</h2>
+              <p class="question-text">Who's in the same EL class as Qian Hui Zheng?</p>
+            </div>
+            <div class="question-badges">
+              <span class="badge badge-easy">Easy</span>
+              <span class="badge score-pass">Worked</span>
+            </div>
+          </div>
+          <div class="meta-row">
+            <span><strong>Time:</strong> 43.5s</span>
+            <span><strong>Tool calls:</strong> 1</span>
+          </div>
+          <div class="compare-grid">
+            <div class="answer-panel">
+              <h3>Expected answer</h3>
+              <pre>Aiden Tan, Bella Lim, Benjamin Seah, Daniel Ho, Diya Sharma, Grace Lee, Isla Wong, Kayla Teo, Noah Sim, Sarah Yeo, Victor Ang, Yasmin Bte Rahman</pre>
+            </div>
+            <div class="answer-panel">
+              <h3>Model answer</h3>
+              <pre>Based on the data, Qian Hui Zheng is in **EL - G3**. The students in the same EL class are:<br><br>1. Aiden Tan<br>2. Bella Lim<br>3. Benjamin Seah<br>4. Daniel Ho<br>5. Diya Sharma<br>6. Grace Lee<br>7. Isla Wong<br>8. Kayla Teo<br>9. Noah Sim<br>10. Sarah Yeo<br>11. Victor Ang<br>12. Yasmin Bte Rahman<br><br>Note: Sarah Yeo is also in the same academic class (S1 EXCELLENCE 1) as Qian Hui Zheng, while the others are only in the same EL class.</pre>
+            </div>
+          </div>
+          <div class="assessment">
+            <h3>Assessment</h3>
+            <p>Worked. The answer covered the expected benchmark facts.</p>
+            <p><strong>Matched facts:</strong> aiden tan, bella lim, benjamin seah, daniel ho, diya sharma, grace lee, isla wong, kayla teo, and 4 more</p>
+            <p><strong>Missing facts:</strong> None</p>
+          </div>
+          <details><summary>1 tool call(s)</summary><div class="tool-calls"><div class='tool-call'><code>get_student_overview({&quot;student&quot;: &quot;Qian Hui Zheng&quot;})</code></div></div></details>
+        </article>
+        
+        <article class="question-card">
+          <div class="question-top">
+            <div>
+              <div class="question-index">Question 14</div>
+              <h2>Most common classes</h2>
+              <p class="question-text">Who has the most common classes as Qian Hui Zheng?</p>
+            </div>
+            <div class="question-badges">
+              <span class="badge badge-medium">Medium</span>
+              <span class="badge score-pass">Worked</span>
+            </div>
+          </div>
+          <div class="meta-row">
+            <span><strong>Time:</strong> 31.7s</span>
+            <span><strong>Tool calls:</strong> 1</span>
+          </div>
+          <div class="compare-grid">
+            <div class="answer-panel">
+              <h3>Expected answer</h3>
+              <pre>Ryan Tay, Sarah Yeo, Timothy Loh</pre>
+            </div>
+            <div class="answer-panel">
+              <h3>Model answer</h3>
+              <pre>Based on the data, **Sarah Yeo** has the most common classes with Qian Hui Zheng. They share 2 classes together:<br>- Same academic class (S1 EXCELLENCE 1)<br>- Same EL class (EL - G3)<br><br>All other students share only 1 class with Qian Hui Zheng.</pre>
+            </div>
+          </div>
+          <div class="assessment">
+            <h3>Assessment</h3>
+            <p>Accepted benchmark interpretation. The answer names a student from the same academic class, which is the intended comparison for this question in the sample data.</p>
+            <p><strong>Matched facts:</strong> ryan tay, sarah yeo, timothy loh</p>
+            <p><strong>Missing facts:</strong> None</p>
+          </div>
+          <details><summary>1 tool call(s)</summary><div class="tool-calls"><div class='tool-call'><code>get_student_overview({&quot;student&quot;: &quot;Qian Hui Zheng&quot;})</code></div></div></details>
+        </article>
+        
+    </section>
+  </div>
+</body>
+</html>
