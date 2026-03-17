@@ -1,0 +1,880 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Local Classroom Data Assistant Briefing</title>
+<style>
+  :root {
+    --bg: #f4efe7;
+    --paper: #fffdf8;
+    --frame-bg: rgba(255, 253, 248, 0.92);
+    --float-bg: rgba(255, 253, 248, 0.88);
+    --hover-bg: #fff7ef;
+    --quote-bg: linear-gradient(90deg, rgba(180, 77, 22, 0.07), transparent);
+    --bg-glow-1: rgba(180, 77, 22, 0.08);
+    --bg-glow-2: rgba(31, 93, 99, 0.09);
+    --ink: #1e1812;
+    --muted: #6e655c;
+    --line: #dbcab5;
+    --accent: #b44d16;
+    --accent-dark: #7d2e0d;
+    --accent-soft: #f7dfcf;
+    --teal: #1f5d63;
+    --teal-soft: #dceef0;
+    --success: #2f7d32;
+    --success-soft: #e1f2e2;
+    --shadow: 0 18px 48px rgba(63, 38, 15, 0.10);
+  }
+
+  body.theme-dark {
+    --bg: #110f0d;
+    --paper: #1f1a16;
+    --frame-bg: rgba(24, 20, 17, 0.94);
+    --float-bg: rgba(24, 20, 17, 0.90);
+    --hover-bg: #2a221c;
+    --quote-bg: linear-gradient(90deg, rgba(240, 160, 109, 0.12), transparent);
+    --bg-glow-1: rgba(240, 160, 109, 0.12);
+    --bg-glow-2: rgba(143, 200, 207, 0.10);
+    --ink: #f2ebe2;
+    --muted: #c7baac;
+    --line: #3e3329;
+    --accent: #f0a06d;
+    --accent-dark: #ffd7bf;
+    --accent-soft: #3a281d;
+    --teal: #94c8cf;
+    --teal-soft: #1b3338;
+    --success: #9bd39e;
+    --success-soft: #213624;
+    --shadow: 0 18px 48px rgba(0, 0, 0, 0.42);
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    margin: 0;
+    font-family: "Avenir Next", "Segoe UI", sans-serif;
+    color: var(--ink);
+    background:
+      radial-gradient(circle at top right, var(--bg-glow-1), transparent 24%),
+      radial-gradient(circle at bottom left, var(--bg-glow-2), transparent 28%),
+      var(--bg);
+    overflow-y: scroll;
+  }
+
+  .rail {
+    position: fixed;
+    top: 18px;
+    right: 18px;
+    z-index: 20;
+    width: min(250px, calc(100vw - 36px));
+    padding: 14px;
+    border: 1px solid var(--line);
+    border-radius: 24px;
+    background: var(--float-bg);
+    box-shadow: var(--shadow);
+    backdrop-filter: blur(10px);
+  }
+
+  .rail-top {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+  }
+
+  .rail-actions {
+    display: flex;
+    gap: 8px;
+  }
+
+  .rail-toggle,
+  .theme-toggle {
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: var(--paper);
+    color: var(--ink);
+    font: inherit;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 8px 10px;
+    cursor: pointer;
+  }
+
+  .rail.collapsed .rail-links {
+    display: none;
+  }
+
+  .rail.collapsed {
+    width: auto;
+    min-width: 0;
+    padding: 12px;
+  }
+
+  .rail-links {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .rail a {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 44px;
+    padding: 10px 12px;
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    background: var(--paper);
+    color: var(--ink);
+    text-decoration: none;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    transition: transform 120ms ease, border-color 120ms ease, background 120ms ease;
+  }
+
+  .rail a:hover {
+    transform: translateY(-1px);
+    border-color: var(--accent);
+    background: var(--hover-bg);
+  }
+
+  .rail-index {
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+  }
+
+  .deck {
+    scroll-snap-type: y mandatory;
+  }
+
+  .slide {
+    min-height: 100vh;
+    padding: 56px 24px 32px;
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+    position: relative;
+  }
+
+  .frame {
+    width: min(1180px, 100%);
+    margin: 0 auto;
+    padding: 32px;
+    border: 1px solid var(--line);
+    border-radius: 32px;
+    background: var(--frame-bg);
+    box-shadow: var(--shadow);
+    backdrop-filter: blur(8px);
+  }
+
+  .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 18px;
+    padding: 7px 12px;
+    border-radius: 999px;
+    background: var(--accent-soft);
+    color: var(--accent-dark);
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .eyebrow::before {
+    content: "";
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--accent);
+  }
+
+  h1, h2 {
+    margin: 0;
+    letter-spacing: -0.04em;
+    line-height: 0.96;
+  }
+
+  h1 {
+    font-size: clamp(42px, 8vw, 80px);
+  }
+
+  h2 {
+    font-size: clamp(32px, 5vw, 52px);
+  }
+
+  .lede {
+    margin-top: 18px;
+    max-width: 900px;
+    font-size: clamp(18px, 2.4vw, 28px);
+    line-height: 1.4;
+    color: var(--muted);
+  }
+
+  .grid-2,
+  .grid-3,
+  .grid-4 {
+    display: grid;
+    gap: 18px;
+    margin-top: 28px;
+  }
+
+  .grid-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .grid-3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .grid-4 {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .card,
+  .metric,
+  .quote,
+  .step {
+    border: 1px solid var(--line);
+    border-radius: 24px;
+    background: var(--paper);
+    padding: 22px;
+  }
+
+  .card h3,
+  .metric h3,
+  .step h3 {
+    margin: 0 0 8px;
+    font-size: 22px;
+    letter-spacing: -0.03em;
+  }
+
+  .card p,
+  .metric p,
+  .step p,
+  .quote p,
+  .small {
+    margin: 0;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+
+  .big-number {
+    font-size: clamp(38px, 5vw, 64px);
+    line-height: 1;
+    font-weight: 800;
+    letter-spacing: -0.06em;
+  }
+
+  .pill {
+    display: inline-block;
+    margin-bottom: 12px;
+    padding: 6px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .pill-accent {
+    background: var(--accent-soft);
+    color: var(--accent-dark);
+  }
+
+  .pill-teal {
+    background: var(--teal-soft);
+    color: var(--teal);
+  }
+
+  .pill-success {
+    background: var(--success-soft);
+    color: var(--success);
+  }
+
+  .flow {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 12px;
+    margin-top: 28px;
+    align-items: center;
+  }
+
+  .flow .node {
+    padding: 16px 14px;
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    background: var(--paper);
+    text-align: center;
+    font-weight: 700;
+    line-height: 1.4;
+  }
+
+  .flow .arrow {
+    text-align: center;
+    color: var(--muted);
+    font-size: 24px;
+  }
+
+  .tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 18px;
+  }
+
+  .tag {
+    padding: 10px 12px;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    background: var(--paper);
+    font-size: 14px;
+    font-weight: 700;
+  }
+
+  ul {
+    margin: 14px 0 0;
+    padding-left: 20px;
+    color: var(--muted);
+    line-height: 1.7;
+  }
+
+  li + li {
+    margin-top: 6px;
+  }
+
+  .quote {
+    margin-top: 24px;
+    border-left: 6px solid var(--accent);
+    background: var(--quote-bg);
+  }
+
+  .quote strong {
+    display: block;
+    margin-bottom: 8px;
+    color: var(--ink);
+  }
+
+  .steps {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 18px;
+    margin-top: 28px;
+  }
+
+  .step-number {
+    margin-bottom: 14px;
+    color: var(--accent);
+    font-size: 14px;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .footnote {
+    margin-top: 20px;
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.6;
+  }
+
+  .slide-nav {
+    position: absolute;
+    right: 40px;
+    bottom: 28px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 54px;
+    height: 54px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: var(--float-bg);
+    color: var(--ink);
+    text-decoration: none;
+    font-size: 26px;
+    line-height: 1;
+    box-shadow: var(--shadow);
+    backdrop-filter: blur(8px);
+  }
+
+  .slide-nav:hover {
+    background: var(--hover-bg);
+  }
+
+  @media (max-width: 980px) {
+    .rail {
+      position: static;
+      width: min(1180px, calc(100% - 48px));
+      margin: 18px auto 0;
+    }
+
+    .grid-2,
+    .grid-3,
+    .grid-4,
+    .steps {
+      grid-template-columns: 1fr;
+    }
+
+    .flow {
+      grid-template-columns: 1fr;
+    }
+
+    .flow .arrow {
+      transform: rotate(90deg);
+    }
+
+    .slide-nav {
+      right: 24px;
+      bottom: 20px;
+    }
+  }
+</style>
+</head>
+<body>
+  <nav class="rail">
+    <div class="rail-top">
+      <div class="rail-actions">
+        <button class="theme-toggle" type="button" id="themeToggle">Dark</button>
+        <button class="rail-toggle" type="button" id="railToggle">Sections</button>
+      </div>
+    </div>
+    <div class="rail-links">
+      <a href="#story"><span class="rail-index">01</span><span>Story</span></a>
+      <a href="#data"><span class="rail-index">02</span><span>Data</span></a>
+      <a href="#tools"><span class="rail-index">03</span><span>Tools</span></a>
+      <a href="#questions"><span class="rail-index">04</span><span>Questions</span></a>
+      <a href="#validation"><span class="rail-index">05</span><span>Validation</span></a>
+      <a href="#result"><span class="rail-index">06</span><span>Result</span></a>
+      <a href="#pilot"><span class="rail-index">07</span><span>Pilot</span></a>
+      <a href="#selftest"><span class="rail-index">08</span><span>Try it</span></a>
+    </div>
+  </nav>
+
+  <main class="deck">
+    <section class="slide" id="story">
+      <div class="frame">
+        <div class="eyebrow">School briefing</div>
+        <h1>From one CSV to a local classroom data assistant</h1>
+        <p class="lede">
+          We started with a single file, <strong>S1EL_3.csv</strong>, and used it to build a synthetic test environment, a set of local data tools, and a benchmark that mirrors the school’s questions. The latest verified result is <strong>14 out of 14 benchmark questions passed</strong> in the current optimised local-tool setup.
+        </p>
+
+        <div class="grid-3">
+          <div class="metric">
+            <div class="pill pill-accent">Starting point</div>
+            <div class="big-number">1</div>
+            <p>Original source file: <strong>S1EL_3.csv</strong>.</p>
+          </div>
+          <div class="metric">
+            <div class="pill pill-teal">Working dataset</div>
+            <div class="big-number">7</div>
+            <p>Connected synthetic CSVs covering roster, subjects, teachers, timetable, attendance, and EL history.</p>
+          </div>
+          <div class="metric">
+            <div class="pill pill-success">Latest status</div>
+            <div class="big-number">14/14</div>
+            <p>Optimised local benchmark questions passed with the current tool layer.</p>
+          </div>
+        </div>
+      </div>
+      <a class="slide-nav" href="#why" aria-label="Next slide">↓</a>
+    </section>
+
+    <section class="slide" id="why">
+      <div class="frame">
+        <div class="eyebrow">Why this work existed</div>
+        <h2>The school’s request was straightforward, but it required supporting work</h2>
+        <div class="grid-3">
+          <div class="card">
+            <h3>Natural-language questions</h3>
+            <p>Staff want to ask plain-English questions about classes, students, subjects, teachers, location, attendance, and EL progression.</p>
+          </div>
+          <div class="card">
+            <h3>Local-first constraint</h3>
+            <p>The solution needs to work with a local LLM, not a cloud-hosted assistant, so student data can stay on-site.</p>
+          </div>
+          <div class="card">
+            <h3>Proof before pilot</h3>
+            <p>Before anyone trusts it with real data, we need evidence that the model can reliably answer the exact question types the school cares about.</p>
+          </div>
+        </div>
+
+        <div class="quote">
+          <strong>In plain terms:</strong>
+          the real question is not whether an LLM can discuss CSV files, but whether a local LLM can answer this school’s question set with acceptable reliability while keeping the data local.
+        </div>
+      </div>
+      <a class="slide-nav" href="#data" aria-label="Next slide">↓</a>
+    </section>
+
+    <section class="slide" id="data">
+      <div class="frame">
+        <div class="eyebrow">Data build-out</div>
+        <h2>We expanded one file into a synthetic school data model</h2>
+        <p class="lede">
+          The original file gave us class, teacher, and EL grouping signals. To test the broader question set safely, we created linked synthetic data that reflects the structure of a school workflow without using real student records.
+        </p>
+
+        <div class="flow">
+          <div class="node">S1EL_3.csv<br><span class="small">class · teacher · EL</span></div>
+          <div class="arrow">→</div>
+          <div class="node">students.csv<br><span class="small">32 students</span></div>
+          <div class="arrow">→</div>
+          <div class="node">subject_enrolment.csv<br><span class="small">192 rows</span></div>
+          <div class="arrow">→</div>
+          <div class="node">subject_teachers.csv<br><span class="small">18 rows</span></div>
+        </div>
+
+        <div class="grid-3">
+          <div class="card">
+            <h3>Class structure</h3>
+            <p><strong>class_info.csv</strong> maps 8 classes to form teachers and level.</p>
+          </div>
+          <div class="card">
+            <h3>Student journey</h3>
+            <p><strong>attendance.csv</strong> and <strong>el_history.csv</strong> let us test time-based questions, not just static lookups.</p>
+          </div>
+          <div class="card">
+            <h3>Where is this student now?</h3>
+            <p><strong>timetable.csv</strong> adds day/period/room scheduling so location questions can be validated.</p>
+          </div>
+        </div>
+
+        <div class="footnote">
+          Current synthetic sample size: <strong>32 students</strong>, <strong>8 classes</strong>, <strong>6 teachers</strong>, and <strong>7 CSV files</strong>.
+        </div>
+      </div>
+      <a class="slide-nav" href="#tools" aria-label="Next slide">↓</a>
+    </section>
+
+    <section class="slide" id="tools">
+      <div class="frame">
+        <div class="eyebrow">Tooling</div>
+        <h2>The model is supported by constrained local tools</h2>
+        <p class="lede">
+          The local LLM runs through LM Studio, but the answer quality depends on tool support: tightly-scoped CSV operations plus higher-level joined tools for the harder school questions.
+        </p>
+
+        <div class="grid-2">
+          <div class="card">
+            <div class="pill pill-teal">Generic CSV tools</div>
+            <ul>
+              <li><strong>list_files</strong> and <strong>read_headers</strong> for schema discovery</li>
+              <li><strong>query</strong>, <strong>summarise</strong>, <strong>distinct</strong>, and <strong>cross_tabulate</strong> for structured retrieval</li>
+              <li>Useful for straightforward class counts, breakdowns, and filters</li>
+            </ul>
+          </div>
+          <div class="card">
+            <div class="pill pill-accent">Joined specialist tools</div>
+            <ul>
+              <li><strong>get_student_overview</strong></li>
+              <li><strong>get_student_teachers</strong></li>
+              <li><strong>get_student_location</strong></li>
+              <li><strong>find_students_same_subjects</strong></li>
+              <li><strong>get_level_teachers</strong></li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="quote">
+          <strong>Why that matters:</strong>
+          the local model was less reliable when it had to work out multi-step joins by itself. Turning those joins into dedicated tools improved consistency.
+        </div>
+      </div>
+      <a class="slide-nav" href="#questions" aria-label="Next slide">↓</a>
+    </section>
+
+    <section class="slide" id="questions">
+      <div class="frame">
+        <div class="eyebrow">The school question set</div>
+        <h2>The benchmark mirrors the questions the school asked</h2>
+        <div class="tags">
+          <div class="tag">How many classes are there?</div>
+          <div class="tag">How many students are there in each class?</div>
+          <div class="tag">What subjects does student X take?</div>
+          <div class="tag">What is the rigour of each subject?</div>
+          <div class="tag">Who teaches class Z?</div>
+          <div class="tag">Who teaches student X?</div>
+          <div class="tag">Who teaches this level?</div>
+          <div class="tag">Where is this student now?</div>
+          <div class="tag">Tell me about student X.</div>
+          <div class="tag">What are the EL grades for the past 3 years?</div>
+          <div class="tag">What is student X’s attendance?</div>
+          <div class="tag">Who takes the same subjects?</div>
+          <div class="tag">Who is in the same EL class?</div>
+          <div class="tag">Who has the most common classes?</div>
+        </div>
+
+        <div class="grid-4">
+          <div class="card">
+            <h3>Basic lookup</h3>
+            <p>Counts, filters, and one-file questions.</p>
+          </div>
+          <div class="card">
+            <h3>Student profile</h3>
+            <p>History, attendance, and current picture for one student.</p>
+          </div>
+          <div class="card">
+            <h3>Operational query</h3>
+            <p>Location, teacher assignment, and level view.</p>
+          </div>
+          <div class="card">
+            <h3>Relationship query</h3>
+            <p>Same subjects, same EL class, most common classes.</p>
+          </div>
+        </div>
+      </div>
+      <a class="slide-nav" href="#validation" aria-label="Next slide">↓</a>
+    </section>
+
+    <section class="slide" id="validation">
+      <div class="frame">
+        <div class="eyebrow">Validation approach</div>
+        <h2>We benchmarked the full local setup, not just the raw model</h2>
+
+        <div class="grid-3">
+          <div class="card">
+            <h3>14 benchmark questions</h3>
+            <p>The same school-style questions were scored repeatedly against known ground truth computed directly from the synthetic CSVs.</p>
+          </div>
+          <div class="card">
+            <h3>Fact-based scoring</h3>
+            <p>Answers were checked for the actual facts they contained, not for matching exact phrasing or markdown layout.</p>
+          </div>
+          <div class="card">
+            <h3>Safety rails</h3>
+            <p>We added loop detection, tool-call limits, and one-shot answer forcing so the local model could not spiral into repeated tool use.</p>
+          </div>
+        </div>
+
+        <div class="quote">
+          <strong>Important nuance:</strong>
+          the benchmark does not claim that all local LLMs will perform well on this task. It shows that <strong>this specific local setup</strong> can answer <strong>this specific school question set</strong> well enough to justify the next step.
+        </div>
+      </div>
+      <a class="slide-nav" href="#result" aria-label="Next slide">↓</a>
+    </section>
+
+    <section class="slide" id="result">
+      <div class="frame">
+        <div class="eyebrow">Current outcome</div>
+        <h2>Current verified outcome</h2>
+
+        <div class="grid-4">
+          <div class="metric">
+            <div class="pill pill-success">Benchmark</div>
+            <div class="big-number">14/14</div>
+            <p>School-style benchmark questions passed in the latest verified optimised run.</p>
+          </div>
+          <div class="metric">
+            <div class="pill pill-teal">Model</div>
+            <div class="big-number">35B</div>
+            <p>Qwen 3.5 35B A3B via LM Studio.</p>
+          </div>
+          <div class="metric">
+            <div class="pill pill-accent">Average time</div>
+            <div class="big-number">19.0s</div>
+            <p>Per benchmark question in the latest verified run.</p>
+          </div>
+          <div class="metric">
+            <div class="pill pill-success">Regression tests</div>
+            <div class="big-number">8/8</div>
+            <p>Deterministic checks for joined tools and scorer behaviour.</p>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="card">
+            <h3>What improved the result</h3>
+            <ul>
+              <li>Specialist joined tools for the hard multi-file questions</li>
+              <li>Pre-seeded schema so the model wastes fewer calls on discovery</li>
+              <li>One-shot answer flow after high-confidence tools return</li>
+              <li>Cleaner scoring that recognises correct answers even when phrased differently</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h3>What this does not yet prove</h3>
+            <ul>
+              <li>It does not replace validation on a redacted real export</li>
+              <li>It does not prove every local model will perform the same way</li>
+              <li>It does not yet cover every free-form question staff might invent</li>
+              <li>It should still be treated as a controlled pilot capability, not a final production claim</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <a class="slide-nav" href="#pilot" aria-label="Next slide">↓</a>
+    </section>
+
+    <section class="slide" id="pilot">
+      <div class="frame">
+        <div class="eyebrow">What this means for the school</div>
+        <h2>This is ready for a controlled pilot, not a broad rollout</h2>
+
+        <div class="steps">
+          <div class="step">
+            <div class="step-number">Step 1</div>
+            <h3>Show the working shape</h3>
+            <p>Use the synthetic environment and the current browser chat to show the question types working locally end-to-end.</p>
+          </div>
+          <div class="step">
+            <div class="step-number">Step 2</div>
+            <h3>Validate on a safe real extract</h3>
+            <p>Use a redacted or approved export from the school to check that the same tool design holds up with the real column names and data shape.</p>
+          </div>
+          <div class="step">
+            <div class="step-number">Step 3</div>
+            <h3>Decide the pilot boundary</h3>
+            <p>Start with a controlled list of supported questions, defined users, and clear wording around what the assistant should and should not be used for.</p>
+          </div>
+        </div>
+
+        <div class="quote">
+          <strong>Recommended message to stakeholders:</strong>
+          “We now have evidence that the local approach can answer the current question set. The next step is a limited pilot on approved school data.”
+        </div>
+      </div>
+      <a class="slide-nav" href="#selftest" aria-label="Next slide">↓</a>
+    </section>
+
+    <section class="slide" id="selftest">
+      <div class="frame">
+        <div class="eyebrow">Can the school try this themselves?</div>
+        <h2>There are two practical ways to test this in your own LM Studio setup</h2>
+
+        <div class="grid-2">
+          <div class="card">
+            <div class="pill pill-success">Option 1 · easiest</div>
+            <h3>Run the provided local chat</h3>
+            <ul>
+              <li>Install LM Studio and load the approved local model</li>
+              <li>Start LM Studio’s local OpenAI-compatible server</li>
+              <li>Run <strong>bridge.py</strong> against the sample data or a safe school export</li>
+              <li>Open the local browser chat and ask the same question set yourselves</li>
+            </ul>
+          </div>
+          <div class="card">
+            <div class="pill pill-teal">Option 2 · more technical</div>
+            <h3>Attach the tools into your own app</h3>
+            <ul>
+              <li>Run <strong>csv_tool.py --serve</strong> as a local HTTP tool service</li>
+              <li>Point your own app at LM Studio’s local API</li>
+              <li>Reuse the tool definitions from <strong>csv_tool.py</strong></li>
+              <li>Let your app route tool calls locally, without sending data to a remote service</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="quote">
+          <strong>Important framing for the school:</strong>
+          the simplest first test is not to plug this straight into a wider stack, but to run the local bridge against a safe extract and check whether it answers the school’s question set in the school’s own environment.
+        </div>
+
+        <div class="footnote">
+          A step-by-step version of this is included in <strong>school_self_test_guide.md</strong>.
+        </div>
+      </div>
+    </section>
+  </main>
+
+<script>
+  const themeStorageKey = "school-briefing-theme";
+  const railStorageKey = "school-briefing-rail-collapsed";
+  const bodyEl = document.body;
+  const slides = Array.from(document.querySelectorAll(".slide"));
+  const railEl = document.querySelector(".rail");
+  const themeToggleEl = document.getElementById("themeToggle");
+  const railToggleEl = document.getElementById("railToggle");
+
+  function applyTheme(theme) {
+    bodyEl.classList.toggle("theme-dark", theme === "dark");
+    themeToggleEl.textContent = theme === "dark" ? "Light" : "Dark";
+  }
+
+  function applyRailState(collapsed) {
+    railEl.classList.toggle("collapsed", collapsed);
+    railToggleEl.textContent = collapsed ? "Sections" : "Hide";
+  }
+
+  function currentSlideIndex() {
+    const midpoint = window.innerHeight / 2;
+    let bestIndex = 0;
+    let bestDistance = Number.POSITIVE_INFINITY;
+
+    slides.forEach((slide, index) => {
+      const rect = slide.getBoundingClientRect();
+      const slideMid = rect.top + rect.height / 2;
+      const distance = Math.abs(slideMid - midpoint);
+      if (distance < bestDistance) {
+        bestDistance = distance;
+        bestIndex = index;
+      }
+    });
+
+    return bestIndex;
+  }
+
+  function goToSlide(index) {
+    const target = slides[Math.max(0, Math.min(index, slides.length - 1))];
+    if (target) {
+      target.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }
+
+  document.addEventListener("keydown", (event) => {
+    const tag = document.activeElement && document.activeElement.tagName;
+    if (tag === "INPUT" || tag === "TEXTAREA") {
+      return;
+    }
+
+    if (event.code === "Space") {
+      event.preventDefault();
+      goToSlide(currentSlideIndex() + 1);
+    }
+
+    if (event.code === "ArrowDown" || event.code === "PageDown") {
+      event.preventDefault();
+      goToSlide(currentSlideIndex() + 1);
+    }
+
+    if (event.code === "ArrowUp" || event.code === "PageUp") {
+      event.preventDefault();
+      goToSlide(currentSlideIndex() - 1);
+    }
+  });
+
+  const savedTheme = window.localStorage.getItem(themeStorageKey) || "light";
+  applyTheme(savedTheme);
+
+  const savedRailPreference = window.localStorage.getItem(railStorageKey);
+  const savedRailState = savedRailPreference === null ? true : savedRailPreference === "true";
+  applyRailState(savedRailState);
+
+  themeToggleEl.addEventListener("click", () => {
+    const nextTheme = bodyEl.classList.contains("theme-dark") ? "light" : "dark";
+    applyTheme(nextTheme);
+    window.localStorage.setItem(themeStorageKey, nextTheme);
+  });
+
+  railToggleEl.addEventListener("click", () => {
+    const nextCollapsed = !railEl.classList.contains("collapsed");
+    applyRailState(nextCollapsed);
+    window.localStorage.setItem(railStorageKey, String(nextCollapsed));
+  });
+</script>
+</body>
+</html>
