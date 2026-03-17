@@ -368,8 +368,8 @@
 
   .quote {
     margin-top: 24px;
-    border-left: 6px solid var(--accent);
-    background: var(--quote-bg);
+    border-bottom: 2px solid var(--accent);
+    background: var(--paper);
   }
 
   .quote strong {
@@ -854,7 +854,7 @@
 
     if (event.code === "Space") {
       event.preventDefault();
-      goToSlide(currentSlideIndex() + 1);
+      goToSlide(currentSlideIndex() + (event.shiftKey ? -1 : 1));
     }
 
     if (event.code === "ArrowDown" || event.code === "PageDown") {
