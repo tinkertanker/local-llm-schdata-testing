@@ -28,7 +28,7 @@ python3 bridge.py --data-dir ./sample_data --serve-chat --port 8000
 
 3. Open these tabs in advance:
 
-- `school_briefing.html`
+- `index.html`
 - `http://127.0.0.1:8000`
 - `benchmark_report.html`
 
@@ -41,7 +41,7 @@ python3 bridge.py --data-dir ./sample_data --serve-chat --port 8000
 
 Screen:
 
-- Open `school_briefing.html`
+- Open `index.html`
 - Show the title slide and the “from one CSV to a local classroom data assistant” framing
 
 Talk track:

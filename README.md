@@ -144,13 +144,6 @@ Questions range from simple lookups ("How many classes are there?") to multi-fil
 
 See [FINDINGS.md](FINDINGS.md) for the earlier benchmark history, the joined-tool redesign, and the latest verified pass result.
 
-## School-facing materials
-
-If you need to explain the project to non-technical stakeholders:
-
-- [docs/school_presentation.html](docs/school_presentation.html) — hostable static presentation deck
-- [docs/school_demo_recording_guide.md](docs/school_demo_recording_guide.md) — suggested recording flow and voiceover
-
 ## Testing the CSV tool directly
 
 You can test the tool without LM Studio:
@@ -176,18 +169,12 @@ The joined tools and scorer also have a deterministic regression suite:
 python3 -m unittest test_csv_tool.py
 ```
 
-## Presentation assets
-
-For stakeholder-facing materials, the repo now includes:
-
-- [docs/school-presentation.html](docs/school-presentation.html) — a hostable slide deck for the school briefing
-- [docs/demo-recording.md](docs/demo-recording.md) — a practical runbook for recording a short demo video
-
 ## School-facing assets
 
 Two project artefacts are included for explaining the work to non-technical stakeholders:
 
-- `school_briefing.html` — a hostable static presentation covering the starting point, synthetic data build-out, tooling, benchmark approach, current result, and pilot framing
+- `index.html` — the GitHub Pages entrypoint and hostable presentation deck for the school briefing
+- `school_briefing.html` — a lightweight redirect to `index.html` for backwards compatibility
 - `demo_recording_guide.md` — a suggested script for recording a short walkthrough if you do not want to host a live demo
 - `school_self_test_guide.md` — instructions for the school if they want to try the prototype in their own LM Studio instance or wire the tools into their own app
 
