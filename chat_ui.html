@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CSV Data Chat</title>
+<style>
+  :root {
+    --bg: #0a0a0a;
+    --panel: #111111;
+    --panel-2: #171717;
+    --panel-3: #1e1e1e;
+    --line: #2d2d2d;
+    --line-strong: #4a4a4a;
+    --text: #f5f5f5;
+    --muted: #9a9a9a;
+    --accent: #f3f3f3;
+    --assistant: #151515;
+    --user: #f2f2f2;
+    --user-text: #111111;
+    --danger: #ff5f57;
+    --shadow: 0 24px 80px rgba(0, 0, 0, 0.45);
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  html, body {
+    margin: 0;
+    min-height: 100%;
+    background:
+      radial-gradient(circle at top left, rgba(255, 255, 255, 0.06), transparent 22%),
+      radial-gradient(circle at bottom right, rgba(255, 255, 255, 0.04), transparent 24%),
+      var(--bg);
+    color: var(--text);
+    font-family: "Inter", "Avenir Next", "Segoe UI", sans-serif;
+  }
+
+  body {
+    min-height: 100vh;
+  }
+
+  .shell {
+    width: min(1220px, calc(100% - 32px));
+    margin: 16px auto;
+    display: grid;
+    grid-template-columns: 320px minmax(0, 1fr);
+    gap: 16px;
+    min-height: calc(100vh - 32px);
+  }
+
+  .card {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent 100%), var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 28px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+
+  .sidebar {
+    display: flex;
+    flex-direction: column;
+    padding: 28px;
+    gap: 20px;
+  }
+
+  .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    align-self: flex-start;
+    padding: 8px 12px;
+    border: 1px solid var(--line-strong);
+    border-radius: 999px;
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  .eyebrow::before {
+    content: "";
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 18px rgba(255, 255, 255, 0.7);
+  }
+
+  h1 {
+    margin: 0;
+    font-size: clamp(38px, 6vw, 56px);
+    line-height: 0.95;
+    letter-spacing: -0.07em;
+    font-weight: 800;
+    text-transform: uppercase;
+  }
+
+  .sidebar p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 15px;
+    line-height: 1.7;
+  }
+
+  .section-label {
+    margin: 10px 0 0;
+    color: var(--text);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .examples {
+    display: grid;
+    gap: 10px;
+  }
+
+  .example {
+    width: 100%;
+    padding: 14px 16px;
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.03), transparent), var(--panel-2);
+    color: var(--text);
+    text-align: left;
+    font: inherit;
+    cursor: pointer;
+    transition: transform 140ms ease, border-color 140ms ease, background 140ms ease;
+  }
+
+  .example:hover {
+    transform: translateY(-1px);
+    border-color: var(--accent);
+    background: var(--panel-3);
+  }
+
+  .meta {
+    margin-top: auto;
+    padding-top: 18px;
+    border-top: 1px solid var(--line);
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.6;
+  }
+
+  .chat {
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    min-height: calc(100vh - 32px);
+  }
+
+  .chat-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 24px 24px 18px;
+    border-bottom: 1px solid var(--line);
+    background: rgba(255, 255, 255, 0.02);
+  }
+
+  .chat-title {
+    margin: 0;
+    font-size: 28px;
+    line-height: 1;
+    letter-spacing: -0.05em;
+    text-transform: uppercase;
+  }
+
+  .chat-subtitle {
+    margin: 8px 0 0;
+    color: var(--muted);
+    font-size: 14px;
+  }
+
+  .reset {
+    border: 1px solid var(--line-strong);
+    border-radius: 999px;
+    background: transparent;
+    color: var(--text);
+    font: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    padding: 12px 16px;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .messages {
+    padding: 24px;
+    overflow: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .bubble {
+    max-width: min(760px, 88%);
+    border: 1px solid var(--line);
+    border-radius: 24px;
+    padding: 16px 18px;
+  }
+
+  .bubble.user {
+    align-self: flex-end;
+    background: var(--user);
+    color: var(--user-text);
+    border-color: rgba(255, 255, 255, 0.35);
+    border-bottom-right-radius: 8px;
+  }
+
+  .bubble.assistant {
+    align-self: flex-start;
+    background: var(--assistant);
+    color: var(--text);
+    border-bottom-left-radius: 8px;
+  }
+
+  .bubble.system {
+    align-self: center;
+    max-width: 100%;
+    background: transparent;
+    color: var(--muted);
+    border-style: dashed;
+    text-align: center;
+  }
+
+  .bubble-label {
+    margin-bottom: 10px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    opacity: 0.7;
+  }
+
+  .bubble.user .bubble-label {
+    color: rgba(17, 17, 17, 0.65);
+  }
+
+  .markdown {
+    font-size: 15px;
+    line-height: 1.7;
+    word-break: break-word;
+  }
+
+  .markdown > :first-child {
+    margin-top: 0;
+  }
+
+  .markdown > :last-child {
+    margin-bottom: 0;
+  }
+
+  .markdown p,
+  .markdown ul,
+  .markdown ol,
+  .markdown blockquote,
+  .markdown pre,
+  .markdown table {
+    margin: 0 0 14px;
+  }
+
+  .markdown h1,
+  .markdown h2,
+  .markdown h3,
+  .markdown h4,
+  .markdown h5,
+  .markdown h6 {
+    margin: 18px 0 10px;
+    font-size: 18px;
+    line-height: 1.2;
+    letter-spacing: -0.03em;
+    text-transform: none;
+  }
+
+  .markdown ul,
+  .markdown ol {
+    padding-left: 20px;
+  }
+
+  .markdown li + li {
+    margin-top: 6px;
+  }
+
+  .markdown blockquote {
+    padding: 12px 14px;
+    border-left: 3px solid var(--line-strong);
+    background: rgba(255, 255, 255, 0.03);
+    color: #d4d4d4;
+  }
+
+  .markdown code {
+    padding: 2px 6px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.08);
+    font-family: "SFMono-Regular", "Menlo", monospace;
+    font-size: 0.92em;
+  }
+
+  .markdown pre {
+    padding: 14px;
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    background: #0b0b0b;
+    overflow: auto;
+  }
+
+  .markdown pre code {
+    padding: 0;
+    background: transparent;
+    border-radius: 0;
+    display: block;
+    white-space: pre;
+  }
+
+  .markdown a {
+    color: inherit;
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+  }
+
+  .markdown table {
+    width: 100%;
+    border-collapse: collapse;
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    overflow: hidden;
+  }
+
+  .markdown th,
+  .markdown td {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--line);
+    text-align: left;
+    vertical-align: top;
+  }
+
+  .markdown th {
+    background: rgba(255, 255, 255, 0.05);
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .markdown tr:last-child td {
+    border-bottom: none;
+  }
+
+  .bubble.user .markdown code {
+    background: rgba(0, 0, 0, 0.08);
+  }
+
+  .composer {
+    padding: 18px 24px 24px;
+    border-top: 1px solid var(--line);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.015), rgba(255, 255, 255, 0.03));
+  }
+
+  .composer form {
+    display: grid;
+    gap: 12px;
+  }
+
+  textarea {
+    width: 100%;
+    min-height: 128px;
+    resize: vertical;
+    border: 1px solid var(--line-strong);
+    border-radius: 22px;
+    padding: 16px 18px;
+    background: #0f0f0f;
+    color: var(--text);
+    font: inherit;
+    line-height: 1.6;
+  }
+
+  textarea::placeholder {
+    color: #767676;
+  }
+
+  textarea:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.08);
+  }
+
+  .composer-foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .hint {
+    color: var(--muted);
+    font-size: 13px;
+  }
+
+  .send {
+    border: 1px solid rgba(255, 255, 255, 0.75);
+    border-radius: 999px;
+    background: var(--accent);
+    color: #101010;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 800;
+    padding: 12px 18px;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .send:disabled,
+  .reset:disabled,
+  textarea:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+
+  @media (max-width: 980px) {
+    .shell {
+      grid-template-columns: 1fr;
+    }
+
+    .chat {
+      min-height: auto;
+    }
+  }
+</style>
+</head>
+<body>
+  <main class="shell">
+    <aside class="card sidebar">
+      <div class="eyebrow">Local data chat</div>
+      <h1>Ask the data directly.</h1>
+      <p>
+        This is a local chat surface over the LM Studio bridge and CSV tools. Nothing is sent to a remote service.
+      </p>
+      <p>
+        Use direct classroom-data questions about students, EL groupings, attendance, subjects, teachers, and timetable slots.
+      </p>
+
+      <div class="section-label">Quick prompts</div>
+      <div class="examples">
+        <button class="example" type="button">How many classes are there?</button>
+        <button class="example" type="button">Who teaches Qian Hui Zheng?</button>
+        <button class="example" type="button">Where is Qian Hui Zheng now? Assume it's Monday Period 1.</button>
+        <button class="example" type="button">Tell me about Qian Hui Zheng.</button>
+        <button class="example" type="button">Who takes the same subjects as Qian Hui Zheng?</button>
+      </div>
+
+      <div class="meta">
+        Session state is stored in this browser tab only. Use <strong>Reset chat</strong> to clear the current conversation and start fresh.
+      </div>
+    </aside>
+
+    <section class="card chat">
+      <header class="chat-head">
+        <div>
+          <h2 class="chat-title">Teacher Chat</h2>
+          <p class="chat-subtitle">Markdown replies are rendered in place. Tables, lists, code, and headings display as formatted content.</p>
+        </div>
+        <button class="reset" id="resetButton" type="button">Reset chat</button>
+      </header>
+
+      <div class="messages" id="messages"></div>
+
+      <div class="composer">
+        <form id="chatForm">
+          <textarea id="messageInput" placeholder="Example: Which students are in EL - G3?" required></textarea>
+          <div class="composer-foot">
+            <div class="hint">Press Enter to send. Use Shift+Enter for a new line.</div>
+            <button class="send" id="sendButton" type="submit">Send question</button>
+          </div>
+        </form>
+      </div>
+    </section>
+  </main>
+
+<script>
+  const messagesEl = document.getElementById("messages");
+  const formEl = document.getElementById("chatForm");
+  const inputEl = document.getElementById("messageInput");
+  const sendButtonEl = document.getElementById("sendButton");
+  const resetButtonEl = document.getElementById("resetButton");
+  const exampleButtons = document.querySelectorAll(".example");
+  const storageKey = "csv-chat-session-id";
+
+  let sessionId = window.localStorage.getItem(storageKey) || "";
+  let isPending = false;
+
+  function escapeHtml(text) {
+    return text
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+  }
+
+  function renderInline(text) {
+    let html = escapeHtml(text);
+    html = html.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noreferrer">$1</a>');
+    html = html.replace(/`([^`]+)`/g, "<code>$1</code>");
+    html = html.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+    html = html.replace(/\*([^*]+)\*/g, "<em>$1</em>");
+    return html;
+  }
+
+  function isTableBlock(block) {
+    const lines = block.split("\n").map((line) => line.trim()).filter(Boolean);
+    if (lines.length < 2) {
+      return false;
+    }
+    if (!lines.every((line) => line.includes("|"))) {
+      return false;
+    }
+    return /^\|?[\s:-]+\|[\s|:-]*$/.test(lines[1]);
+  }
+
+  function renderTable(block) {
+    const lines = block.split("\n").map((line) => line.trim()).filter(Boolean);
+    const parseRow = (line) => line.replace(/^\||\|$/g, "").split("|").map((cell) => renderInline(cell.trim()));
+    const headers = parseRow(lines[0]);
+    const rows = lines.slice(2).map(parseRow);
+    return `
+      <table>
+        <thead>
+          <tr>${headers.map((cell) => `<th>${cell}</th>`).join("")}</tr>
+        </thead>
+        <tbody>
+          ${rows.map((row) => `<tr>${row.map((cell) => `<td>${cell}</td>`).join("")}</tr>`).join("")}
+        </tbody>
+      </table>
+    `;
+  }
+
+  function renderList(block, ordered) {
+    const lines = block.split("\n").map((line) => line.trim()).filter(Boolean);
+    const items = lines.map((line) => {
+      const text = ordered ? line.replace(/^\d+\.\s+/, "") : line.replace(/^[-*]\s+/, "");
+      return `<li>${renderInline(text)}</li>`;
+    }).join("");
+    return ordered ? `<ol>${items}</ol>` : `<ul>${items}</ul>`;
+  }
+
+  function renderBlock(block) {
+    if (!block.trim()) {
+      return "";
+    }
+
+    if (block.startsWith("```") && block.endsWith("```")) {
+      const lines = block.split("\n");
+      const language = lines[0].slice(3).trim();
+      const code = lines.slice(1, -1).join("\n");
+      const className = language ? ` class="language-${escapeHtml(language)}"` : "";
+      return `<pre><code${className}>${escapeHtml(code)}</code></pre>`;
+    }
+
+    if (isTableBlock(block)) {
+      return renderTable(block);
+    }
+
+    if (/^#{1,6}\s+/.test(block.trim()) && !block.includes("\n")) {
+      const match = block.trim().match(/^(#{1,6})\s+(.*)$/);
+      const level = match[1].length;
+      return `<h${level}>${renderInline(match[2])}</h${level}>`;
+    }
+
+    if (block.split("\n").every((line) => /^[-*]\s+/.test(line.trim()))) {
+      return renderList(block, false);
+    }
+
+    if (block.split("\n").every((line) => /^\d+\.\s+/.test(line.trim()))) {
+      return renderList(block, true);
+    }
+
+    if (block.split("\n").every((line) => /^>\s?/.test(line.trim()))) {
+      const quote = block.split("\n").map((line) => line.replace(/^>\s?/, "")).join("<br>");
+      return `<blockquote>${renderInline(quote)}</blockquote>`;
+    }
+
+    return `<p>${block.split("\n").map((line) => renderInline(line)).join("<br>")}</p>`;
+  }
+
+  function renderMarkdown(text) {
+    const normalised = String(text || "").replace(/\r\n/g, "\n").trim();
+    if (!normalised) {
+      return "<p>(No response)</p>";
+    }
+
+    const blocks = [];
+    const lines = normalised.split("\n");
+    let current = [];
+    let inFence = false;
+
+    for (const line of lines) {
+      if (line.trim().startsWith("```")) {
+        current.push(line);
+        inFence = !inFence;
+        if (!inFence) {
+          blocks.push(current.join("\n"));
+          current = [];
+        }
+        continue;
+      }
+
+      if (!inFence && line.trim() === "") {
+        if (current.length) {
+          blocks.push(current.join("\n"));
+          current = [];
+        }
+        continue;
+      }
+
+      current.push(line);
+    }
+
+    if (current.length) {
+      blocks.push(current.join("\n"));
+    }
+
+    return blocks.map(renderBlock).join("");
+  }
+
+  function addMessage(role, text) {
+    const bubble = document.createElement("div");
+    bubble.className = `bubble ${role}`;
+
+    const label = document.createElement("div");
+    label.className = "bubble-label";
+    label.textContent = role === "user" ? "You" : role === "assistant" ? "Assistant" : "Status";
+    bubble.appendChild(label);
+
+    const content = document.createElement("div");
+    content.className = "markdown";
+    if (role === "user" || role === "system") {
+      content.innerHTML = `<p>${renderInline(String(text || ""))}</p>`;
+    } else {
+      content.innerHTML = renderMarkdown(String(text || ""));
+    }
+    bubble.appendChild(content);
+
+    messagesEl.appendChild(bubble);
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+  }
+
+  function setPending(nextPending) {
+    isPending = nextPending;
+    inputEl.disabled = nextPending;
+    sendButtonEl.disabled = nextPending;
+    resetButtonEl.disabled = nextPending;
+  }
+
+  async function sendMessage(text) {
+    if (!text.trim() || isPending) {
+      return;
+    }
+
+    addMessage("user", text.trim());
+    inputEl.value = "";
+    setPending(true);
+
+    try {
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          session_id: sessionId,
+          message: text.trim()
+        })
+      });
+
+      const payload = await response.json();
+      if (!response.ok) {
+        throw new Error(payload.error || "Chat request failed.");
+      }
+
+      sessionId = payload.session_id || sessionId;
+      if (sessionId) {
+        window.localStorage.setItem(storageKey, sessionId);
+      }
+
+      addMessage("assistant", payload.answer || "(No response)");
+    } catch (error) {
+      addMessage("assistant", `**Error**\n\n${error.message}`);
+    } finally {
+      setPending(false);
+      inputEl.focus();
+    }
+  }
+
+  async function resetChat() {
+    if (isPending) {
+      return;
+    }
+
+    setPending(true);
+    try {
+      const response = await fetch("/api/reset", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ session_id: sessionId })
+      });
+      const payload = await response.json();
+      if (!response.ok) {
+        throw new Error(payload.error || "Reset failed.");
+      }
+
+      sessionId = payload.session_id || "";
+      if (sessionId) {
+        window.localStorage.setItem(storageKey, sessionId);
+      } else {
+        window.localStorage.removeItem(storageKey);
+      }
+
+      messagesEl.innerHTML = "";
+      addMessage("system", "Chat reset. Ask a new question about the CSV data.");
+    } catch (error) {
+      addMessage("assistant", `**Error**\n\n${error.message}`);
+    } finally {
+      setPending(false);
+      inputEl.focus();
+    }
+  }
+
+  formEl.addEventListener("submit", (event) => {
+    event.preventDefault();
+    sendMessage(inputEl.value);
+  });
+
+  inputEl.addEventListener("keydown", (event) => {
+    if (event.key === "Enter" && !event.shiftKey) {
+      event.preventDefault();
+      formEl.requestSubmit();
+    }
+  });
+
+  resetButtonEl.addEventListener("click", resetChat);
+
+  exampleButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      inputEl.value = button.textContent.trim();
+      inputEl.focus();
+    });
+  });
+
+  addMessage("system", "Ready. Ask a question about the CSV data.");
+</script>
+</body>
+</html>
