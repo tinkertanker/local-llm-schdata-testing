@@ -188,7 +188,6 @@ Two project artefacts are included for explaining the work to non-technical stak
 
 - `index.html` — the GitHub Pages entrypoint and hostable presentation deck for the school briefing
 - `school_briefing.html` — a lightweight redirect to `index.html` for backwards compatibility
-- `demo_recording_guide.md` — a suggested script for recording a short walkthrough if you do not want to host a live demo
 - `school_self_test_guide.md` — instructions for the school if they want to try the prototype in their own LM Studio instance or wire the tools into their own app
 
 ## Running as an HTTP server
