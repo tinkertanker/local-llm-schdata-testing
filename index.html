@@ -109,6 +109,22 @@
     cursor: pointer;
   }
 
+  .theme-toggle,
+  .rail-toggle {
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    justify-content: center;
+  }
+
+  .theme-toggle svg,
+  .rail-toggle svg {
+    width: 18px;
+    height: 18px;
+    display: block;
+    margin: 0 auto;
+  }
+
   .rail.collapsed .rail-links {
     display: none;
   }
@@ -226,6 +242,13 @@
     font-size: clamp(32px, 5vw, 52px);
   }
 
+  .section-header {
+    margin: 16px 0 0;
+    font-size: clamp(20px, 2.2vw, 28px);
+    letter-spacing: -0.03em;
+    line-height: 1.2;
+  }
+
   .lede {
     margin-top: 18px;
     max-width: 900px;
@@ -317,20 +340,39 @@
 
   .flow {
     display: grid;
-    grid-template-columns: repeat(7, minmax(0, 1fr));
+    grid-template-columns:
+      minmax(150px, 1.45fr) 48px
+      minmax(150px, 1.45fr) 48px
+      minmax(150px, 1.45fr) 48px
+      minmax(150px, 1.45fr);
     gap: 12px;
     margin-top: 28px;
     align-items: center;
   }
 
   .flow .node {
-    padding: 16px 14px;
+    min-width: 0;
+    min-height: 136px;
+    padding: 18px 18px;
     border: 1px solid var(--line);
     border-radius: 20px;
     background: var(--paper);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
     text-align: center;
     font-weight: 700;
     line-height: 1.4;
+    overflow-wrap: break-word;
+    word-break: normal;
+  }
+
+  .flow .node .inline-link,
+  .flow .node .small {
+    display: block;
+    max-width: 100%;
   }
 
   .flow .arrow {
@@ -373,9 +415,12 @@
   }
 
   .quote strong {
+    color: var(--ink);
+  }
+
+  .quote > strong:first-child {
     display: block;
     margin-bottom: 8px;
-    color: var(--ink);
   }
 
   .steps {
@@ -399,6 +444,36 @@
     color: var(--muted);
     font-size: 13px;
     line-height: 1.6;
+  }
+
+  .link-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 22px;
+  }
+
+  .link-chip {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    padding: 13px 20px;
+    border: 1px solid var(--accent);
+    border-radius: 999px;
+    background: var(--accent);
+    color: var(--paper);
+    text-decoration: none;
+    font-weight: 700;
+    box-shadow: 0 10px 24px rgba(180, 77, 22, 0.18);
+    transition: transform 120ms ease, border-color 120ms ease, background 120ms ease, box-shadow 120ms ease;
+  }
+
+  .link-chip:hover {
+    transform: translateY(-1px);
+    border-color: var(--accent-dark);
+    background: var(--accent-dark);
+    box-shadow: 0 14px 28px rgba(180, 77, 22, 0.24);
   }
 
   .slide-nav {
@@ -458,8 +533,8 @@
   <nav class="rail">
     <div class="rail-top">
       <div class="rail-actions">
-        <button class="theme-toggle" type="button" id="themeToggle">Dark</button>
-        <button class="rail-toggle" type="button" id="railToggle">Sections</button>
+        <button class="theme-toggle" type="button" id="themeToggle" aria-label="Switch to dark mode" title="Switch to dark mode"></button>
+        <button class="rail-toggle" type="button" id="railToggle" aria-label="Show sections" title="Show sections"></button>
       </div>
     </div>
     <div class="rail-links">
@@ -469,8 +544,10 @@
       <a href="#questions"><span class="rail-index">04</span><span>Questions</span></a>
       <a href="#validation"><span class="rail-index">05</span><span>Validation</span></a>
       <a href="#result"><span class="rail-index">06</span><span>Result</span></a>
-      <a href="#pilot"><span class="rail-index">07</span><span>Pilot</span></a>
-      <a href="#selftest"><span class="rail-index">08</span><span>Try it</span></a>
+      <a href="#training"><span class="rail-index">07</span><span>Workflow</span></a>
+      <a href="#training-safety"><span class="rail-index">08</span><span>Training</span></a>
+      <a href="#pilot"><span class="rail-index">09</span><span>Recommendation</span></a>
+      <a href="#selftest"><span class="rail-index">10</span><span>Try it</span></a>
     </div>
   </nav>
 
@@ -478,7 +555,7 @@
     <section class="slide" id="story">
       <div class="frame">
         <div class="eyebrow">School briefing</div>
-        <h1>From one CSV to a local classroom data assistant</h1>
+        <h1>Local LLM Data Study</h1>
         <p class="lede">
           We started with a single file, <strong><a class="inline-link" href="https://github.com/tinkertanker/local-llm-schdata-testing/blob/main/sample_data/S1EL_3.csv" target="_blank" rel="noreferrer">S1EL_3.csv</a></strong>, and used it to build a synthetic test environment, a set of local data tools, and a benchmark that mirrors the school’s questions. The latest verified result is <strong>14 out of 14 benchmark questions passed</strong> in the current optimised local-tool setup.
         </p>
@@ -507,7 +584,8 @@
     <section class="slide" id="why">
       <div class="frame">
         <div class="eyebrow">Why this work existed</div>
-        <h2>The school’s request was straightforward, but it required supporting work</h2>
+        <h2>Why</h2>
+        <h3 class="section-header">The request was straightforward, but it needed supporting work</h3>
         <div class="grid-3">
           <div class="card">
             <h3>Natural-language questions</h3>
@@ -534,19 +612,20 @@
     <section class="slide" id="data">
       <div class="frame">
         <div class="eyebrow">Data build-out</div>
-        <h2>We expanded one file into a synthetic school data model</h2>
+        <h2>Data Model</h2>
+        <h3 class="section-header">One source file was expanded into a synthetic linked dataset</h3>
         <p class="lede">
           The original file gave us class, teacher, and EL grouping signals. To test the broader question set safely, we created linked synthetic data that reflects the structure of a school workflow without using real student records.
         </p>
 
         <div class="flow">
-          <div class="node"><a class="inline-link" href="https://github.com/tinkertanker/local-llm-schdata-testing/blob/main/sample_data/S1EL_3.csv" target="_blank" rel="noreferrer">S1EL_3.csv</a><br><span class="small">class · teacher · EL</span></div>
+          <div class="node"><a class="inline-link" href="https://github.com/tinkertanker/local-llm-schdata-testing/blob/main/sample_data/S1EL_3.csv" target="_blank" rel="noreferrer">S1EL_3.csv</a><span class="small">class · teacher · EL</span></div>
           <div class="arrow">→</div>
-          <div class="node"><a class="inline-link" href="https://github.com/tinkertanker/local-llm-schdata-testing/blob/main/sample_data/students.csv" target="_blank" rel="noreferrer">students.csv</a><br><span class="small">32 students</span></div>
+          <div class="node"><a class="inline-link" href="https://github.com/tinkertanker/local-llm-schdata-testing/blob/main/sample_data/students.csv" target="_blank" rel="noreferrer">students.csv</a><span class="small">32 students</span></div>
           <div class="arrow">→</div>
-          <div class="node"><a class="inline-link" href="https://github.com/tinkertanker/local-llm-schdata-testing/blob/main/sample_data/subject_enrolment.csv" target="_blank" rel="noreferrer">subject_enrolment.csv</a><br><span class="small">192 rows</span></div>
+          <div class="node"><a class="inline-link" href="https://github.com/tinkertanker/local-llm-schdata-testing/blob/main/sample_data/subject_enrolment.csv" target="_blank" rel="noreferrer">subject_enrolment.csv</a><span class="small">192 rows</span></div>
           <div class="arrow">→</div>
-          <div class="node"><a class="inline-link" href="https://github.com/tinkertanker/local-llm-schdata-testing/blob/main/sample_data/subject_teachers.csv" target="_blank" rel="noreferrer">subject_teachers.csv</a><br><span class="small">18 rows</span></div>
+          <div class="node"><a class="inline-link" href="https://github.com/tinkertanker/local-llm-schdata-testing/blob/main/sample_data/subject_teachers.csv" target="_blank" rel="noreferrer">subject_teachers.csv</a><span class="small">18 rows</span></div>
         </div>
 
         <div class="grid-3">
@@ -574,7 +653,8 @@
     <section class="slide" id="tools">
       <div class="frame">
         <div class="eyebrow">Tooling</div>
-        <h2>The model is supported by constrained local tools</h2>
+        <h2>Tools</h2>
+        <h3 class="section-header">The local model relies on constrained local tools</h3>
         <p class="lede">
           The local LLM runs through LM Studio, but the answer quality depends on tool support: tightly-scoped CSV operations plus higher-level joined tools for the harder school questions.
         </p>
@@ -611,7 +691,8 @@
     <section class="slide" id="questions">
       <div class="frame">
         <div class="eyebrow">The school question set</div>
-        <h2>The benchmark mirrors the questions the school asked</h2>
+        <h2>Question Set</h2>
+        <h3 class="section-header">The benchmark uses the school’s actual question types</h3>
         <div class="tags">
           <div class="tag">How many classes are there?</div>
           <div class="tag">How many students are there in each class?</div>
@@ -654,7 +735,8 @@
     <section class="slide" id="validation">
       <div class="frame">
         <div class="eyebrow">Validation approach</div>
-        <h2>We benchmarked the full local setup, not just the raw model</h2>
+        <h2>Validation</h2>
+        <h3 class="section-header">The benchmark tested the full local setup, not just the raw model</h3>
 
         <div class="grid-3">
           <div class="card">
@@ -682,7 +764,8 @@
     <section class="slide" id="result">
       <div class="frame">
         <div class="eyebrow">Current outcome</div>
-        <h2>Current verified outcome</h2>
+        <h2>Results</h2>
+        <h3 class="section-header">Current verified outcome</h3>
 
         <div class="grid-4">
           <div class="metric">
@@ -693,12 +776,12 @@
           <div class="metric">
             <div class="pill pill-teal">Model</div>
             <div class="big-number">35B</div>
-            <p>Qwen 3.5 35B A3B via LM Studio.</p>
+            <p>mlx-community/Qwen3.5-35B-A3B-4bit mlx via LM Studio.</p>
           </div>
           <div class="metric">
             <div class="pill pill-accent">Average time</div>
-            <div class="big-number">19.0s</div>
-            <p>Per benchmark question in the latest verified run.</p>
+            <div class="big-number">55.7s</div>
+            <p>Per benchmark question in the latest rerun of the optimised setup.</p>
           </div>
           <div class="metric">
             <div class="pill pill-success">Regression tests</div>
@@ -727,6 +810,76 @@
             </ul>
           </div>
         </div>
+
+        <div class="link-row">
+          <a class="link-chip" href="./benchmark_report.html" target="_blank" rel="noreferrer">Open benchmark summary</a>
+          <a class="link-chip" href="./benchmark_results.html" target="_blank" rel="noreferrer">Open detailed benchmark results</a>
+        </div>
+      </div>
+      <a class="slide-nav" href="#training" aria-label="Next slide">↓</a>
+    </section>
+
+    <section class="slide" id="training">
+      <div class="frame">
+        <div class="eyebrow">Working with a coding agent</div>
+        <h2>Workflow</h2>
+        <h3 class="section-header">A teacher and a coding agent can iterate on tools quickly, with the human setting the constraints</h3>
+        <p class="lede">
+          This study was built as a working conversation. The human set the questions, constraints, and quality bar. The coding agent handled the implementation and repeated optimisation work.
+        </p>
+
+        <div class="grid-3">
+          <div class="card">
+            <h3>Teacher input</h3>
+            <p>Define the real questions, the safety constraints, and what counts as a useful answer.</p>
+          </div>
+          <div class="card">
+            <h3>Agent work</h3>
+            <p>Write code, generate synthetic linked data, run benchmarks, redesign tools, and package the outputs.</p>
+          </div>
+          <div class="card">
+            <h3>Shared loop</h3>
+            <p>Review results together, inspect failures, and keep refining until the local setup is reliable enough to test further.</p>
+          </div>
+        </div>
+
+        <div class="quote">
+          <strong>What this shows:</strong>
+          a coding agent is most useful when staff bring the domain judgement and constraints, and let the agent handle the repetitive engineering work quickly.
+        </div>
+      </div>
+      <a class="slide-nav" href="#training-safety" aria-label="Next slide">↓</a>
+    </section>
+
+    <section class="slide" id="training-safety">
+      <div class="frame">
+        <div class="eyebrow">Training path</div>
+        <h2>Training</h2>
+        <h3 class="section-header">Staff could learn this workflow, but the training boundary should be synthetic data only</h3>
+
+        <div class="grid-2">
+          <div class="card">
+            <h3>Capability building</h3>
+            <ul>
+              <li>Teachers or staff can be trained to use Codex or Claude Code as a coding partner for building and refining local tools.</li>
+              <li>The aim is not to make every teacher a developer, but to let a small group learn how to shape prompts, tools, and tests with AI support.</li>
+              <li>That creates a repeatable internal workflow for prototyping and improving school-specific tooling.</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h3>Data boundary</h3>
+            <ul>
+              <li>If a cloud coding model is used in training, it should only see synthetic data.</li>
+              <li>That synthetic data can be generated locally by the model, or produced through scripts and spreadsheet workflows such as Excel.</li>
+              <li>The purpose is to learn the workflow without touching school PII or operational records.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="quote">
+          <strong>Practical boundary:</strong>
+          use synthetic data first to train staff and refine tools, then move only to approved redacted school extracts once the workflow and guardrails are understood.
+        </div>
       </div>
       <a class="slide-nav" href="#pilot" aria-label="Next slide">↓</a>
     </section>
@@ -734,7 +887,8 @@
     <section class="slide" id="pilot">
       <div class="frame">
         <div class="eyebrow">What this means for the school</div>
-        <h2>This is ready for a controlled pilot, not a broad rollout</h2>
+        <h2>Recommendation</h2>
+        <h3 class="section-header">Suitable for a controlled pilot, not a broad rollout</h3>
 
         <div class="steps">
           <div class="step">
@@ -749,14 +903,14 @@
           </div>
           <div class="step">
             <div class="step-number">Step 3</div>
-            <h3>Decide the pilot boundary</h3>
+            <h3>Set the pilot boundary</h3>
             <p>Start with a controlled list of supported questions, defined users, and clear wording around what the assistant should and should not be used for.</p>
           </div>
         </div>
 
         <div class="quote">
           <strong>Recommended message to stakeholders:</strong>
-          “We now have evidence that the local approach can answer the current question set. The next step is a limited pilot on approved school data.”
+          “We now have evidence that the local approach can answer the current question set. The next step is a limited pilot on approved school data, alongside a safe training workflow that uses mock data only when staff are learning to build or refine tools.”
         </div>
       </div>
       <a class="slide-nav" href="#selftest" aria-label="Next slide">↓</a>
@@ -765,7 +919,8 @@
     <section class="slide" id="selftest">
       <div class="frame">
         <div class="eyebrow">Can the school try this themselves?</div>
-        <h2>There are two practical ways to test this in your own LM Studio setup</h2>
+        <h2>Self-Testing</h2>
+        <h3 class="section-header">Two practical ways to test this in an LM Studio setup</h3>
 
         <div class="grid-2">
           <div class="card">
@@ -810,15 +965,42 @@
   const railEl = document.querySelector(".rail");
   const themeToggleEl = document.getElementById("themeToggle");
   const railToggleEl = document.getElementById("railToggle");
+  const sunIcon = `
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <circle cx="12" cy="12" r="4"></circle>
+      <path d="M12 2v2.5M12 19.5V22M4.93 4.93l1.77 1.77M17.3 17.3l1.77 1.77M2 12h2.5M19.5 12H22M4.93 19.07l1.77-1.77M17.3 6.7l1.77-1.77"></path>
+    </svg>
+  `;
+  const moonIcon = `
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"></path>
+    </svg>
+  `;
+  const menuIcon = `
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M4 7h16M4 12h16M4 17h16"></path>
+    </svg>
+  `;
+  const closeIcon = `
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M6 6l12 12M18 6L6 18"></path>
+    </svg>
+  `;
 
   function applyTheme(theme) {
     bodyEl.classList.toggle("theme-dark", theme === "dark");
-    themeToggleEl.textContent = theme === "dark" ? "Light" : "Dark";
+    const nextModeLabel = theme === "dark" ? "Switch to light mode" : "Switch to dark mode";
+    themeToggleEl.innerHTML = theme === "dark" ? sunIcon : moonIcon;
+    themeToggleEl.setAttribute("aria-label", nextModeLabel);
+    themeToggleEl.setAttribute("title", nextModeLabel);
   }
 
   function applyRailState(collapsed) {
     railEl.classList.toggle("collapsed", collapsed);
-    railToggleEl.textContent = collapsed ? "Sections" : "Hide";
+    const nextRailLabel = collapsed ? "Show sections" : "Hide sections";
+    railToggleEl.innerHTML = collapsed ? menuIcon : closeIcon;
+    railToggleEl.setAttribute("aria-label", nextRailLabel);
+    railToggleEl.setAttribute("title", nextRailLabel);
   }
 
   function currentSlideIndex() {
