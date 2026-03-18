@@ -29,6 +29,30 @@
     --danger-soft: #f8dedd;
     --shadow: 0 18px 48px rgba(63, 38, 15, 0.10);
   }
+  body.theme-dark {
+    --bg: #110f0d;
+    --paper: #1f1a16;
+    --frame-bg: rgba(24, 20, 17, 0.94);
+    --float-bg: rgba(24, 20, 17, 0.90);
+    --hover-bg: #2a221c;
+    --bg-glow-1: rgba(240, 160, 109, 0.12);
+    --bg-glow-2: rgba(143, 200, 207, 0.10);
+    --ink: #f2ebe2;
+    --muted: #c7baac;
+    --line: #3e3329;
+    --accent: #f0a06d;
+    --accent-dark: #ffd7bf;
+    --accent-soft: #3a281d;
+    --teal: #94c8cf;
+    --teal-soft: #1b3338;
+    --success: #9bd39e;
+    --success-soft: #213624;
+    --warning: #f0c36d;
+    --warning-soft: #3a2f1c;
+    --danger: #ef9a9a;
+    --danger-soft: #3a2020;
+    --shadow: 0 18px 48px rgba(0, 0, 0, 0.42);
+  }
   * { box-sizing: border-box; }
   body {
     margin: 0;
@@ -67,6 +91,12 @@
   }
   .hero {
     margin-bottom: 24px;
+  }
+  .hero-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
   }
   .eyebrow {
     display: inline-flex;
@@ -119,16 +149,43 @@
     gap: 12px;
     margin-top: 24px;
   }
-  .action-link {
-    display: inline-flex;
-    align-items: center;
-    min-height: 44px;
-    padding: 11px 16px;
+  .theme-toggle {
+    width: 40px;
+    height: 40px;
+    padding: 0;
     border: 1px solid var(--line);
     border-radius: 999px;
     background: var(--paper);
+    color: var(--ink);
+    cursor: pointer;
+    flex: 0 0 auto;
+  }
+  .theme-toggle svg {
+    width: 18px;
+    height: 18px;
+    display: block;
+    margin: 0 auto;
+  }
+  .action-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    padding: 13px 20px;
+    border: 1px solid var(--accent);
+    border-radius: 999px;
+    background: var(--accent);
+    color: var(--paper);
     text-decoration: none;
     font-weight: 700;
+    box-shadow: 0 10px 24px rgba(180, 77, 22, 0.18);
+    transition: transform 120ms ease, border-color 120ms ease, background 120ms ease, box-shadow 120ms ease;
+  }
+  .action-link:hover {
+    transform: translateY(-1px);
+    border-color: var(--accent-dark);
+    background: var(--accent-dark);
+    box-shadow: 0 14px 28px rgba(180, 77, 22, 0.24);
   }
   .stats {
     display: grid;
@@ -228,6 +285,10 @@
     line-height: 1.6;
   }
   @media (max-width: 980px) {
+    .hero-top {
+      flex-direction: column;
+      align-items: stretch;
+    }
     .stats,
     .grid {
       grid-template-columns: 1fr;
@@ -244,7 +305,10 @@
 <body>
   <div class="wrap">
     <section class="hero">
-      <div class="eyebrow">Benchmark summary</div>
+      <div class="hero-top">
+        <div class="eyebrow">Benchmark summary</div>
+        <button class="theme-toggle" type="button" id="themeToggle" aria-label="Switch to dark mode" title="Switch to dark mode"></button>
+      </div>
       <h1>Optimised local tool benchmark</h1>
       <p class="lede">
         This page summarises the latest rerun of the school question set against the current local setup.
@@ -499,5 +563,38 @@
       </p>
     </section>
   </div>
+<script>
+  const themeStorageKey = "school-briefing-theme";
+  const bodyEl = document.body;
+  const themeToggleEl = document.getElementById("themeToggle");
+  const sunIcon = `
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <circle cx="12" cy="12" r="4"></circle>
+      <path d="M12 2v2.5M12 19.5V22M4.93 4.93l1.77 1.77M17.3 17.3l1.77 1.77M2 12h2.5M19.5 12H22M4.93 19.07l1.77-1.77M17.3 6.7l1.77-1.77"></path>
+    </svg>
+  `;
+  const moonIcon = `
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"></path>
+    </svg>
+  `;
+
+  function applyTheme(theme) {
+    bodyEl.classList.toggle("theme-dark", theme === "dark");
+    const nextModeLabel = theme === "dark" ? "Switch to light mode" : "Switch to dark mode";
+    themeToggleEl.innerHTML = theme === "dark" ? sunIcon : moonIcon;
+    themeToggleEl.setAttribute("aria-label", nextModeLabel);
+    themeToggleEl.setAttribute("title", nextModeLabel);
+  }
+
+  const savedTheme = window.localStorage.getItem(themeStorageKey) || "light";
+  applyTheme(savedTheme);
+
+  themeToggleEl.addEventListener("click", () => {
+    const nextTheme = bodyEl.classList.contains("theme-dark") ? "light" : "dark";
+    applyTheme(nextTheme);
+    window.localStorage.setItem(themeStorageKey, nextTheme);
+  });
+</script>
 </body>
 </html>
