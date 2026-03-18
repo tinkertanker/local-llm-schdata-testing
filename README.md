@@ -112,10 +112,10 @@ The full comparison modes are:
 | **Tools (optimised)** | Same tools, but file list and column schemas are pre-seeded in the system prompt |
 | **No tools** | Raw CSV data stuffed into the system prompt; no tool access |
 
-Latest rerun on **17 March 2026** with `mlx-community/Qwen3.5-35B-A3B-4bit mlx` via LM Studio model id `qwen3.5-35b-a3b`:
+Latest rerun on **17 March 2026** with `mlx-community/Qwen3.5-35B-A3B-4bit mlx` via LM Studio model id `qwen3.5-35b-a3b`, running on an **Apple M4 Pro with 48GB RAM**:
 
 - **Optimised tools mode: 14/14 worked**
-- **Average time:** 55.7s per question
+- **Average time:** 55.7s per question on an Apple M4 Pro with 48GB RAM
 - **Total tool calls:** 15
 - The generated HTML now includes a summary page plus a detailed question-by-question evidence page
 

@@ -33,6 +33,7 @@ DATA_DIR = "./sample_data"
 LM_STUDIO_URL = "http://localhost:1234/v1"
 MODEL = "qwen3.5-35b-a3b"
 MODEL_LABEL = "mlx-community/Qwen3.5-35B-A3B-4bit mlx"
+HARDWARE_LABEL = "Apple M4 Pro with 48GB RAM"
 SUMMARY_REPORT_PATH = "benchmark_report.html"
 DETAIL_REPORT_PATH = "benchmark_results.html"
 RESULTS_JSON_PATH = "benchmark_results.json"
@@ -715,6 +716,7 @@ def build_single_mode_report_data(ground_truth, results, mode_label, generated_a
         "generated_at": generated_at,
         "model_id": MODEL,
         "model_label": MODEL_LABEL,
+        "hardware_label": HARDWARE_LABEL,
         "mode_label": mode_label,
         "student": STUDENT,
         "question_count": len(question_rows),
@@ -1008,6 +1010,7 @@ def generate_summary_html(report_data):
       <p class="hero-note">
         Tested model: <strong>{_escape(report_data['model_label'])}</strong><br>
         LM Studio API model id: <strong>{_escape(report_data['model_id'])}</strong><br>
+        Hardware: <strong>{_escape(report_data['hardware_label'])}</strong><br>
         Scope: <strong>{_escape(report_data['mode_label'])}</strong> · Questions: <strong>{report_data['question_count']}</strong> · Generated: <strong>{_escape(report_data['generated_at'])}</strong>
       </p>
       <div class="actions">
@@ -1026,7 +1029,7 @@ def generate_summary_html(report_data):
       <article class="stat">
         <div class="label">Average time</div>
         <div class="value">{summary['average_time_s']:.1f}s</div>
-        <div class="subvalue">{summary['total_time_s']:.1f} seconds total across the run.</div>
+        <div class="subvalue">{summary['total_time_s']:.1f} seconds total across the run on { _escape(report_data['hardware_label']) }.</div>
       </article>
       <article class="stat">
         <div class="label">Tool calls</div>
@@ -1425,7 +1428,7 @@ def generate_detail_html(report_data):
       <div class="eyebrow">Detailed benchmark results</div>
       <h1>Question-by-question evidence</h1>
       <p class="lede">
-        This page shows the actual prompt, expected answer, model answer, tool usage, timing, and assessment for the latest run of the school benchmark.
+        This page shows the actual prompt, expected answer, model answer, tool usage, timing, and assessment for the latest run of the school benchmark on { _escape(report_data['hardware_label']) }.
       </p>
       <div class="actions">
         <a class="action-link" href="./benchmark_report.html">Back to summary</a>
@@ -1441,7 +1444,7 @@ def generate_detail_html(report_data):
         <article class="overview-card">
           <div class="label">Average time</div>
           <div class="value">{summary['average_time_s']:.1f}s</div>
-          <div class="subvalue">{_escape(report_data['mode_label'])}<br>{summary['tool_calls']} total tool calls</div>
+          <div class="subvalue">{_escape(report_data['mode_label'])}<br>{summary['tool_calls']} total tool calls on { _escape(report_data['hardware_label']) }</div>
         </article>
         <article class="overview-card">
           <div class="label">Generated</div>
@@ -1451,7 +1454,7 @@ def generate_detail_html(report_data):
         <article class="overview-card">
           <div class="label">Model tested</div>
           <div class="value">{_escape(report_data['model_id'])}</div>
-          <div class="subvalue">{_escape(report_data['model_label'])}</div>
+          <div class="subvalue">{_escape(report_data['model_label'])}<br>{_escape(report_data['hardware_label'])}</div>
         </article>
       </div>
     </section>
